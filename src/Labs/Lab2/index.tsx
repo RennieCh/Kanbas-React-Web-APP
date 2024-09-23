@@ -236,7 +236,7 @@ export default function Lab2() {
                         Red
                     </div>
                     <img className="wd-float-right" 
-                    src="https://www.staradvertiser.com/wp-content/uploads/2021/08/web1_Starship-gap2.jpg"/>
+                    src="https://www.staradvertiser.com/wp-content/uploads/2021/08/web1_Starship-gap2.jpg" alt="staradvertiser"/>
                     <div className="wd-float-done"></div>
                 </div>
             </div>
