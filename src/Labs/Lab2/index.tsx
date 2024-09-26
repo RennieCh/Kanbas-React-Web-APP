@@ -602,16 +602,16 @@ export default function Lab2() {
                 <h2>Tabs</h2>
                 <ul className="nav nav-tabs">
                     <li className="nav-item">
-                        <a className="nav-link active" href="#">Active</a>
+                        <a className="nav-link active" href="#/Labs">Active</a>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link" href="#">Link</a>
+                        <a className="nav-link" href="#/Labs">Link</a>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link" href="#">Link</a>
+                        <a className="nav-link" href="#/Labs/Lab3">Link</a>
                     </li>
                     <li className="nav-item">
-                        <a className="nav-link disabled" href="#">Disabled</a>
+                        <a className="nav-link disabled" href="#/Labs/Lab2">Disabled</a>
                     </li>
                 </ul>
             </div><br />
