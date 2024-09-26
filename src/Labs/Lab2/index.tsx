@@ -624,7 +624,7 @@ export default function Lab2() {
                         <p className="card-text">
                             Stacking the most powerful rocket in history. Mars or bust!
                         </p>
-                        <a href="#" className="btn btn-primary">
+                        <a href="#/Labs" className="btn btn-primary">
                             Boldly Go
                         </a>
                     </div>
