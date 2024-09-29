@@ -13,7 +13,7 @@ export default function KanbasNavigation() {
         target="_blank"
         rel="noreferrer"
         className="list-group-item bg-black border-0 text-center">
-        <img src="images/NEU.png" width="75px" /></a>
+        <img src="images/NEU.png" width="75px" alt="NEU" /></a>
       <Link to="/Kanbas/Account" id="wd-account-link"
         className="list-group-item text-center border-0 bg-black text-danger">
         <FaRegCircleUser className="fs-1 text-white" /><br />
