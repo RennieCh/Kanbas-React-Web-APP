@@ -1,8 +1,6 @@
-import { MdOutlineCalendarMonth } from "react-icons/md";
-
 export default function AssignmentEditor() {
     return (
-        <div id="wd-assignments-editor" className="container col-md-8 col-lg-10 mt-4 p-4">
+        <div id="wd-assignments-editor" className="container-fluid mt-4 p-4" style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
             <div className="row mb-3">
                 <div className="col-12">
@@ -13,7 +11,7 @@ export default function AssignmentEditor() {
 
             <div className="row mb-3">
                 <div className="col-12">
-                    <textarea id="wd-description" className="form-control" cols={30} rows={5}>
+                    <textarea id="wd-description" className="form-control" cols={30} rows={10}>
                         The assignment is available online. Submit a link to the landing page of
                         your Web application running on Netlify. The landing page should include
                         the following: Your full name and section links to each of the lab assignments,
