@@ -25,10 +25,10 @@ export default function Assignments() {
                                 <div className="d-flex justify-content-between align-items-center">
                                     <div className="d-flex align-items-center">
                                         <BsGripVertical className="me-2 fs-3" />
-                                        <VscNotebook className="me-2 fs-3 text-success" />
+                                        <VscNotebook className="me-4 fs-3 text-success" />
                                     </div>
 
-                                    <div className="text-left">
+                                    <div className="text-left flex-grow-1">
                                         <a className="wd-assignment-link"
                                             href="#/Kanbas/Courses/1234/Assignments/123"
                                             style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
@@ -47,9 +47,9 @@ export default function Assignments() {
                                 <div className="d-flex justify-content-between align-items-center">
                                     <div className="d-flex align-items-center">
                                         <BsGripVertical className="me-2 fs-3" />
-                                        <VscNotebook className="me-2 fs-3 text-success" />
+                                        <VscNotebook className="me-4 fs-3 text-success" />
                                     </div>
-                                    <div className="text-left">
+                                    <div className="text-left flex-grow-1">
                                         <a className="wd-assignment-link"
                                             href="#/Kanbas/Courses/1234/Assignments/123"
                                             style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
@@ -67,9 +67,9 @@ export default function Assignments() {
                                 <div className="d-flex justify-content-between align-items-center">
                                     <div className="d-flex align-items-center">
                                         <BsGripVertical className="me-2 fs-3" />
-                                        <VscNotebook className="me-2 fs-3 text-success" />
+                                        <VscNotebook className="me-4 fs-3 text-success" />
                                     </div>
-                                    <div className="text-left">
+                                    <div className="text-left flex-grow-1">
                                         <a className="wd-assignment-link"
                                             href="#/Kanbas/Courses/1234/Assignments/123"
                                             style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>

@@ -6,7 +6,7 @@ export default function Dashboard() {
             <h1 id="wd-dashboard-title">Dashboard</h1> <hr />
             <h2 id="wd-dashboard-published">Published Courses (12)</h2> <hr />
             <div id="wd-dashboard-course" className="row">
-                <div className="row row-cols-1 row-cols-md-5 g-5">
+                <div className="row row-cols-1 row-cols-md-5 g-3">
                     <div className="wd-dashboard-course col" style={{ width: "270px" }}>
                         <div className="card h-100">
                             <Link className="wd-dashboard-course-link text-decoration-none text-dark" to="/Kanbas/Courses/1234/Home">
