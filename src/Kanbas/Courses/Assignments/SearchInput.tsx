@@ -11,7 +11,7 @@ export default function SearchInput() {
                     style={{ paddingLeft: "35px", width: "100%" }}
                 />
                 <IoSearchOutline 
-                    className="position-absolute" 
+                    className="position-absolute fs-3" 
                     style={{ left: "10px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} 
                 />
             </div>

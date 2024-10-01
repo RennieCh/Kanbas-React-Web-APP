@@ -9,7 +9,7 @@ export default function Assignments() {
     return (
         <div className="container-fluid">
             <div id="wd-assignments">
-                <AssignmentsControls /> <br /><br /><br /><br />
+                <AssignmentsControls /> <br /><br />
 
                 <ul id="wd-assignment-list" className="list-group rounded-0 w-100">
                     <li className="wd-assignment-list-item list-group-item p-0 mb-5 fs-5 border-gray">

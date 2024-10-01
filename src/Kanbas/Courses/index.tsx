@@ -5,17 +5,20 @@ import Home from "./Home";
 import Assignments from "./Assignments";
 import AssignmentEditor from "./Assignments/Editor";
 import PeopleTable from "./People/Table";
+import { HiMiniBars4 } from "react-icons/hi2";
 
 export default function Courses() {
     return (
-      <div id="wd-courses">
-        <h2>Course 1234</h2> <hr />
-        <table>
-            <tr>
-                <td valign="top">
+        <div id="wd-courses" className="container-fluid">
+            <h2>
+                <HiMiniBars4 className="position-relative me-2" style={{ bottom: "1px" }} />
+                Course 1234
+            </h2> <hr />
+            <div className="row">
+                <div className="col-md-2 col-md-2 d-none d-lg-block">
                     <CoursesNavigation />
-                </td>
-                <td valign="top">
+                </div>
+                <div className="col-md-12 col-lg-10">
                     <Routes>
                         <Route path="/" element={<Navigate to="Home" />} />
                         <Route path="Home" element={<Home />} />
@@ -24,8 +27,8 @@ export default function Courses() {
                         <Route path="Assignments/:aid" element={<AssignmentEditor />} />
                         <Route path="People" element={<PeopleTable />} />
                     </Routes>
-                </td>
-            </tr>
-        </table>
-    </div>
-  );}
+                </div>
+            </div>
+        </div>
+    );
+}
