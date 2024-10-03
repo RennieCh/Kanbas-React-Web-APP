@@ -1,26 +1,25 @@
 import Signin from "./Signin";
 import Profile from "./Profile";
 import Signup from "./Signup";
-import {Routes, Route, Navigate} from "react-router";
+import { Routes, Route, Navigate } from "react-router";
 import AccountNavigation from "./Navigation";
 
 export default function Account() {
-  return (
-    <div id="wd-account-screen">
-        <table>
-            <tr>
-                <td valign="top">
+    return (
+        <div id="wd-account-screen" className="container-fluid">
+            <div className="row">
+                <div className="col-md-2">
                     <AccountNavigation />
-                </td>
-                <td valign="top">
+                </div>
+                <div className="col-md-10">
                     <Routes>
                         <Route path="/" element={<Navigate to="/Kanbas/Account/Signin" />} />
                         <Route path="/Signin" element={<Signin />} />
                         <Route path="/Profile" element={<Profile />} />
                         <Route path="/Signup" element={<Signup />} />
                     </Routes>
-                </td>
-            </tr>
-        </table>
-    </div>
-); }
+                </div>
+            </div>
+        </div>
+    );
+}
