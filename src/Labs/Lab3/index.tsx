@@ -4,7 +4,7 @@ import BooleanVariables from "./BooleanVariables"
 import TernaryOperator from "./TernaryOperator"
 import IfElse from "./IfElse"
 import ConditionalOutputIfElse from "./ConditionalOutputIfElse"
-import ConditionalOutputInline from "./ConsitionalOutputInline"
+import ConditionalOutputInline from "./ConditionalOutputInline"
 import LegacyFunctions from "./LegacyFunction"
 import ArrowFunctions from "./ArrowFunction"
 import ImpliedReturn from "./ImpliedReturn"
@@ -33,8 +33,8 @@ export default function Lab3() {
             <VariablesAndConstants />
             <VariableTypes />
             <BooleanVariables />
-            <TernaryOperator />
             <IfElse />
+            <TernaryOperator />
             <ConditionalOutputIfElse />
             <ConditionalOutputInline />
             <LegacyFunctions />
