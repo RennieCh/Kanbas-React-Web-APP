@@ -1,18 +1,21 @@
 import CoursesNavigation from "./Navigation";
-import { Navigate, Route, Routes } from "react-router";
+import { Navigate, Route, Routes, useParams } from "react-router";
 import Modules from "./Modules";
 import Home from "./Home";
 import Assignments from "./Assignments";
 import AssignmentEditor from "./Assignments/Editor";
 import PeopleTable from "./People/Table";
-import { HiMiniBars4 } from "react-icons/hi2";
+import {courses} from "../Database";
+import { FaAlignJustify } from "react-icons/fa6";
 
 export default function Courses() {
+    const {cid} = useParams();
+    const course = courses.find((course) => course._id===cid);
     return (
         <div id="wd-courses" className="container-fluid">
-            <h2>
-                <HiMiniBars4 className="position-relative me-2" style={{ bottom: "1px" }} />
-                Course 1234
+            <h2 className="text-danger">
+                <FaAlignJustify className="position-relative me-4 fs-4 mb-1" style={{ bottom: "1px" }} />
+                {course && course.name}
             </h2> <hr />
             <div className="row">
                 <div className="col-md-2 col-md-2 d-none d-lg-block">
