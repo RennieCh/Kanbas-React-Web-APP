@@ -7,9 +7,13 @@ import "./styles.css";
 
 export default function Kanbas() {
     return (
-        <div id="wd-kanbas">
-            <KanbasNavigation />
-            <div className="wd-main-content-offset p-3">
+        <div id="wd-kanbas" className="h-100">
+            <div className="d-flex h-100">
+                <div className="d-none d-md-block bg-black">
+                    <KanbasNavigation />
+                </div>
+            </div>
+            <div className="wd-main-content-offset flex-fill p-3">
                 <Routes>
                     <Route path="/" element={<Navigate to="Dashboard" />} />
                     <Route path="/Account/*" element={<Account />} />
