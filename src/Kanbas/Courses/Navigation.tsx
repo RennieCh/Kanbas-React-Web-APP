@@ -4,7 +4,7 @@ export default function CoursesNavigation() {
   const { cid } = useParams(); // Get course ID from the URL
   const { pathname } = useLocation(); // Get current pathname from the URL
 
-  const links = ["Home", "Modules", "Piazza", "Zoom", "Assignments", "Quizzes", "Grades"];
+  const links = ["Home", "Modules", "Piazza", "Zoom", "Assignments", "Quizzes", "Grades", "People"];
 
   // Helper function to check if a link is active
   const isActiveLink = (link: string): boolean => {

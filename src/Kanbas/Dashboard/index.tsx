@@ -19,7 +19,7 @@ export default function Dashboard() {
                 <div className="row row-cols-1 row-cols-md-5 g-3">
                     {courses.map((course) => (
                         <div className="wd-dashboard-course col" key={course._id} style={{ width: "300px" }}>
-                            <Link className="text-decoration-none" to={`/Kanbas/Courses/${course._id}/Home`}>
+                            <Link className="text-decoration-none wd-dashboard-course-link" to={`/Kanbas/Courses/${course._id}/Home`}>
                                 <div className="card h-100 rounded-3 overflow-hidden">
                                     <img
                                         src={getImagePath(course._id)}
@@ -28,11 +28,12 @@ export default function Dashboard() {
                                         alt={course.name}
                                     />
                                     <div className="card-body">
-                                        <span className="wd-dashboard-course-link"
-                                            style={{ textDecoration: "none", color: "navy", fontWeight: "bold" }}>
+                                        <h5 className="wd-dashboard-course-title card-title"
+                                            style={{ textDecoration: "none", color: "navy", fontWeight: "bold" }}
+                                        >
                                             {course.name}
-                                        </span>
-                                        <p className="wd-dashboard-course-title card-text" style={{ maxHeight: 53, overflow: "hidden" }}>
+                                        </h5>
+                                        <p className="wd-dashboard-course-title card-text" style={{ maxHeight: 100, overflow: "hidden" }}>
                                             {course.description}
                                         </p>
                                         <Link to={`/Kanbas/Courses/${course._id}/Home`} className="btn btn-primary">Go</Link>
