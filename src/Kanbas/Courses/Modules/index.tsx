@@ -12,9 +12,6 @@ export default function Modules() {
   // Filter the modules that belong to the selected course
   const courseModules = modules.filter((module: any) => module.course === cid);
 
-   // Get all lessons from the filtered modules
-   const lessons = courseModules.flatMap((module: any) => module.lessons || []); // Flatten the lessons arrays
-
   return (
     <div className="container">
       <div className="w-100 mb-4 flex-nowrap">
