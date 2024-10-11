@@ -1,11 +1,16 @@
+import { useParams, Link } from "react-router-dom";
+import * as db from "../../Database"; 
+
 export default function AssignmentEditor() {
+    const { cid, aid } = useParams(); // Get courseId (cid) and assignmentId (aid) from URL
+    const assignment = db.assignments.find((a: any) => a._id === aid); // Find the assignment by ID
+
     return (
         <div id="wd-assignments-editor" className="container-fluid mt-4 p-4" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-
             <div className="row mb-3">
                 <div className="col-12">
                     <label htmlFor="wd-name" className="form-label">Assignment Name</label>
-                    <input id="wd-name" className="form-control" value="A1 - ENV + HTML" />
+                    <input id="wd-name" className="form-control" value={assignment?.title || ""} readOnly />
                 </div>
             </div>
 
@@ -21,13 +26,15 @@ export default function AssignmentEditor() {
                 </div>
             </div>
 
+            {/* Points Section */}
             <div className="row mb-3">
                 <label htmlFor="wd-points" className="col-sm-3 col-form-label text-end">Point</label>
                 <div className="col-sm-9">
-                    <input id="wd-points" className="form-control" value={100} />
+                    <input id="wd-points" className="form-control" value={100} readOnly />
                 </div>
             </div>
 
+            {/* Assignment Group */}
             <div className="row mb-3">
                 <label htmlFor="wd-group" className="col-sm-3 col-form-label text-end">Assignment Group</label>
                 <div className="col-sm-9">
@@ -38,6 +45,7 @@ export default function AssignmentEditor() {
                 </div>
             </div>
 
+            {/* Display Grade As */}
             <div className="row mb-3">
                 <label htmlFor="wd-display-grade-as" className="col-sm-3 col-form-label text-end">Display Grade as</label>
                 <div className="col-sm-9">
@@ -48,6 +56,7 @@ export default function AssignmentEditor() {
                 </div>
             </div>
 
+            {/* Submission Type */}
             <div className="row mb-3">
                 <label htmlFor="wd-submission-type" className="col-sm-3 col-form-label text-end">Submission Type</label>
                 <div className="col-sm-9">
@@ -57,6 +66,7 @@ export default function AssignmentEditor() {
                             <option value="HANDOUT">Handout</option>
                         </select>
 
+                        {/* Online Entry Options */}
                         <label className="form-label fw-bold">Online Entry Options</label>
                         <div className="form-check">
                             <input type="checkbox" className="form-check-input" id="wd-text-entry" />
@@ -82,6 +92,7 @@ export default function AssignmentEditor() {
                 </div>
             </div>
 
+            {/* Assign To */}
             <div className="row mb-3">
                 <label htmlFor="wd-assign-to" className="col-sm-3 col-form-label text-end">Assign</label>
                 <div className="col-sm-9">
@@ -115,10 +126,11 @@ export default function AssignmentEditor() {
 
             <hr />
 
+            {/* Cancel and Save Buttons */}
             <div className="row">
                 <div className="col-12 text-end">
-                    <button type="button" className="btn btn-secondary me-2">Cancel</button>
-                    <button type="button" className="btn btn-danger">Save</button>
+                    <Link to={`/Kanbas/Courses/${cid}/Assignments`} className="btn btn-secondary me-2">Cancel</Link>
+                    <Link to={`/Kanbas/Courses/${cid}/Assignments`} className="btn btn-danger">Save</Link>
                 </div>
             </div>
         </div>
