@@ -13,7 +13,7 @@ export default function Modules() {
   const courseModules = modules.filter((module: any) => module.course === cid);
 
   return (
-    <div className="container">
+    <div className="container-fluid">
       <div className="w-100 mb-4 flex-nowrap">
         <ModulesControls />
         <br />
