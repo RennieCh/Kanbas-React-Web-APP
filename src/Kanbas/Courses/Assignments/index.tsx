@@ -6,6 +6,7 @@ import AssignmentControlButtons from "./AssignmentControlButtons";
 import LessonControlButtons from "../Modules/LessonControlButtons";
 import { useParams } from "react-router";
 import * as db from "../../Database";
+import { format } from 'date-fns'; // To format the dates
 
 export default function Assignments() {
     const { cid } = useParams(); // Get the course ID from the URL
@@ -13,6 +14,18 @@ export default function Assignments() {
 
     // Filter assignments for the current course
     const courseAssignments = assignments.filter((assignment: any) => assignment.course === cid);
+
+    // Helper function to format date and time
+    const formatDateTime = (date: string, isDueDate = false) => {
+        const dateObj = new Date(`${date}T00:00:00`); // Default to midnight
+
+        if (isDueDate) {
+            // Manually set the time to 11:59 PM for due dates
+            dateObj.setHours(23, 59, 0, 0);
+        }
+
+        return format(dateObj, 'MMMM d, yyyy h:mm a'); // Format date accordingly
+    };
 
     return (
         <div className="container-fluid">
@@ -43,11 +56,12 @@ export default function Assignments() {
                                             <a className="wd-assignment-link"
                                                 href={`#/Kanbas/Courses/${cid}/Assignments/${assignment._id}`}
                                                 style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
-                                                {assignment.title} {/* Replace A1 with assignment.title */}
+                                                {assignment.title}
                                             </a>
                                             <br />
-                                            <span className="text-danger">Multiple Modules</span> | <b>Not available until</b> May 5 at 12:00am |<br />
-                                            <b>Due</b> May 13 at 11:59pm | 100 pts
+                                            <span className="text-danger">Multiple Modules</span> |
+                                            <b>Not available until</b> {formatDateTime(assignment.available_date)} |<br />
+                                            <b>Due</b> {formatDateTime(assignment.due_date, true)} | {assignment.points} pts
                                         </div>
 
                                         <LessonControlButtons />
