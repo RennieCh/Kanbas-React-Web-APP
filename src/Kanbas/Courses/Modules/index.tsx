@@ -11,6 +11,7 @@ export default function Modules() {
   const { cid } = useParams(); // Get the course ID from the URL
   const [moduleName, setModuleName] = useState("");
   const { modules } = useSelector((state: any) => state.modulesReducer);
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
   const dispatch = useDispatch();
 
   // Filter the modules that belong to the selected course
@@ -18,6 +19,7 @@ export default function Modules() {
 
   return (
     <div className="container-fluid">
+      {currentUser.role === "FACULTY" && (
       <div className="w-100 mb-4 flex-nowrap">
         <ModulesControls setModuleName={setModuleName} moduleName={moduleName} 
         addModule={() => {dispatch(addModule({name: moduleName, course:cid}));
@@ -28,6 +30,7 @@ export default function Modules() {
         <br />
         <br />
       </div>
+      )}
 
       <ul id="wd-modules" className="list-group rounded-0 w-100">
         {courseModules.map((module: any) => (
@@ -45,9 +48,11 @@ export default function Modules() {
                 }}
                 value={module.name}/>
               )}
+              {currentUser.role === "FACULTY" && (
               <ModuleControlButtons moduleId={module._id} 
               deleteModule={(moduleID) => {dispatch(deleteModule(moduleID));}}
               editModule={(moduleId) => dispatch(editModule(moduleId))}/>
+              )}
             </div>
 
             {/* Display the lessons if available */}
