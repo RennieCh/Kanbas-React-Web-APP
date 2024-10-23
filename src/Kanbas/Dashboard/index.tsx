@@ -32,6 +32,11 @@ export default function Dashboard() {
         setCourses([...courses, { ...course, ...newCourse }]);
     };
 
+    // add deleteCourse event handler accepting ID of course to remove by filtering out the course by its ID
+    const deleteCourse = (courseId: string) => {
+        setCourses(courses.filter((course) => course._id !== courseId));
+    };
+
     return (
         <div id="wd-dashboard">
             <h1 id="wd-dashboard-title">Dashboard</h1>
@@ -69,6 +74,12 @@ export default function Dashboard() {
                                             {course.description}
                                         </p>
                                         <Link to={`/Kanbas/Courses/${course._id}/Home`} className="btn btn-primary">Go</Link>
+                                        <button onClick={(event) => {
+                                            event.preventDefault();
+                                            deleteCourse(course._id);
+                                        }} className="btn btn-danger float-end"
+                                            id="wd-delete-course-click">Delete</button>
+
                                     </div>
                                 </div>
                             </Link>
