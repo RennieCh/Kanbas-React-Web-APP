@@ -4,13 +4,23 @@ import { BsGripVertical } from "react-icons/bs";
 import { VscNotebook } from "react-icons/vsc";
 import AssignmentControlButtons from "./AssignmentControlButtons";
 import LessonControlButtons from "../Modules/LessonControlButtons";
-import { useParams } from "react-router";
-import * as db from "../../Database";
+import { FaTrash } from "react-icons/fa";
+import { useParams, Link } from "react-router-dom";
 import { format } from 'date-fns'; // To format the dates
+import { useSelector, useDispatch } from "react-redux";
+import { deleteAssignment } from "./reducer";
+import { useState } from "react";
+import { Modal, Button } from 'react-bootstrap';
+
 
 export default function Assignments() {
     const { cid } = useParams(); // Get the course ID from the URL
-    const assignments = db.assignments; // Import assignments from the database
+    const { assignments } = useSelector((state: any) => state.assignmentsReducer); // Use assignments from the store
+    const dispatch = useDispatch();
+
+    const [showModal, setShowModal] = useState(false);
+    const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
+
 
     // Filter assignments for the current course
     const courseAssignments = assignments.filter((assignment: any) => assignment.course === cid);
@@ -25,6 +35,27 @@ export default function Assignments() {
         }
 
         return format(dateObj, 'MMMM d, yyyy h:mm a'); // Format date accordingly
+    };
+
+    // Handle opening of the delete confirmation modal
+    const handleDeleteClick = (assignment: any) => {
+        setSelectedAssignment(assignment); // Set the selected assignment for deletion
+        setShowModal(true); // Show the confirmation modal
+    };
+
+    // Handle confirming the deletion
+    const handleConfirmDelete = () => {
+        if (selectedAssignment) {
+            dispatch(deleteAssignment(selectedAssignment._id)); // Dispatch the delete action
+            setSelectedAssignment(null);
+            setShowModal(false); // Close the modal after deletion
+        }
+    };
+
+    // Handle canceling the deletion
+    const handleCancelDelete = () => {
+        setSelectedAssignment(null);
+        setShowModal(false); // Just close the modal
     };
 
     return (
@@ -53,17 +84,22 @@ export default function Assignments() {
                                         </div>
 
                                         <div className="text-left flex-grow-1">
-                                            <a className="wd-assignment-link"
-                                                href={`#/Kanbas/Courses/${cid}/Assignments/${assignment._id}`}
+                                            <Link className="wd-assignment-link"
+                                                to={`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`}
                                                 style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
                                                 {assignment.title}
-                                            </a>
+                                            </Link>
                                             <br />
                                             <span className="text-danger">Multiple Modules</span> |
                                             <b>Not available until</b> {formatDateTime(assignment.available_date)} |<br />
                                             <b>Due</b> {formatDateTime(assignment.due_date, true)} | {assignment.points} pts
                                         </div>
-
+                                        {/* Delete Icon */}
+                                        <FaTrash
+                                            className="text-danger me-2 mb-1"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() => handleDeleteClick(assignment)}
+                                        />
                                         <LessonControlButtons />
                                     </div>
                                 </li>
@@ -71,6 +107,23 @@ export default function Assignments() {
                         </ul>
                     </li>
                 </ul>
+                {/* Confirmation Modal */}
+                <Modal show={showModal} onHide={handleCancelDelete}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Confirm Delete</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        Are you sure you want to delete the assignment "{selectedAssignment?.title}"?
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handleCancelDelete}>
+                            No
+                        </Button>
+                        <Button variant="danger" onClick={handleConfirmDelete}>
+                            Yes, Delete
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
             </div>
         </div>
     );

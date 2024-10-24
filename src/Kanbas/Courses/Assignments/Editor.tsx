@@ -1,50 +1,133 @@
-import { useParams, Link } from "react-router-dom";
-import * as db from "../../Database"; 
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addAssignment, updateAssignment } from "./reducer";
 
 export default function AssignmentEditor() {
-    const { cid, aid } = useParams(); // Get courseId (cid) and assignmentId (aid) from URL
-    const assignment = db.assignments.find((a: any) => a._id === aid); // Find the assignment by ID
-
     // Helper function to format dates
-    const formatDateTimeForInput = (date: string, isDueDate = false) => {
-        const dateObj = new Date(`${date}T00:00:00`); // Parse the date
+    const formatDateTimeForInput = (date: string | undefined, isDueDate = false) => {
+        if (!date) {
+            return ""; // Handle undefined or empty date
+        }
+
+        let dateObj;
+        if (date.includes("T")) {
+            dateObj = new Date(date); // If it includes time, parse it directly
+        } else {
+            dateObj = new Date(`${date}T00:00:00`); // Add "T00:00:00" if only a date is provided
+        }
+
+        if (isNaN(dateObj.getTime())) {
+            return ""; // Handle invalid date
+        }
+
         if (isDueDate) {
             dateObj.setHours(23, 59, 0, 0); // Set to 11:59 PM for due dates
         } else {
             dateObj.setHours(0, 0, 0, 0); // Set to 12:00 AM for available dates
         }
+
         const year = dateObj.getFullYear();
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Months are 0-based, pad with 0 if needed
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
         const hours = String(dateObj.getHours()).padStart(2, '0');
         const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-    
-        // Return formatted date string for `datetime-local` input: "YYYY-MM-DDTHH:MM"
+
         return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
+
+    // Helper function to format dates for saving
+    const formatDateForSave = (date: string | undefined) => {
+        if (!date) return ""; // Handle undefined date
+        const dateObj = new Date(date);
+        return dateObj.toISOString().split("T")[0]; // Convert to "YYYY-MM-DD" format for storage
+    };
+
+    const { cid, aid } = useParams(); // Get courseId (cid) and assignmentId (aid) from URL
+    const { assignments } = useSelector((state: any) => state.assignmentsReducer);
+    const assignment = assignments.find((a: any) => a._id === aid); // Find the assignment by ID
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    // Set default values for a new assignment
+    const defaultNewAssignment = {
+        _id: "new", // Placeholder ID
+        title: "New Assignment",
+        description: "This is a new assignment description",
+        points: 100,
+        due_date: formatDateTimeForInput(new Date().toISOString(), true),
+        available_date: formatDateTimeForInput(new Date().toISOString(), false),
+        course: cid
+    };
+
+    const [form, setForm] = useState<any>(assignment ? {
+        ...assignment,
+        due_date: formatDateTimeForInput(assignment.due_date, true),
+        available_date: formatDateTimeForInput(assignment.available_date, false),
+    } : defaultNewAssignment);
+
+    const handleSave = () => {
+        const formattedDueDate = formatDateForSave(form.due_date);
+        const formattedAvailableDate = formatDateForSave(form.available_date);
+
+        if (form._id === "new") {
+            // Create a new assignment
+            dispatch(addAssignment({
+                ...form,
+                _id: new Date().getTime().toString(),
+                due_date: formattedDueDate,
+                available_date: formattedAvailableDate,
+            })); // Generate unique ID for new assignment
+        } else {
+            // Update existing assignment
+            dispatch(updateAssignment({
+                ...form,
+                due_date: formattedDueDate,
+                available_date: formattedAvailableDate,
+            }));
+        }
+        navigate(`/Kanbas/Courses/${cid}/Assignments`); // Navigate back to the Assignments screen
+    };
+    const handleCancel = () => {
+        // Navigate back to the Assignments screen without saving
+        navigate(`/Kanbas/Courses/${cid}/Assignments`);
+    };
+
+    useEffect(() => {
+        if (aid && aid !== "new" && assignment) {
+            // Update the form state with properly formatted dates
+            setForm({
+                ...assignment,
+                due_date: formatDateTimeForInput(assignment.due_date, true),
+                available_date: formatDateTimeForInput(assignment.available_date, false),
+            });
+        }
+    }, [aid, assignment]);
 
     return (
         <div id="wd-assignments-editor" className="container-fluid mt-4 p-4" style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <div className="row mb-3">
                 <div className="col-12">
                     <label htmlFor="wd-name" className="form-label">Assignment Name</label>
-                    <input id="wd-name" className="form-control" value={assignment?.title || ""} readOnly />
+                    <input id="wd-name" className="form-control" value={form.title}
+                        onChange={(e) => setForm({ ...form, title: e.target.value })} />
                 </div>
             </div>
 
             <div className="row mb-3">
                 <div className="col-12">
-                    <textarea id="wd-description" className="form-control" cols={30} rows={10}>
-                        {assignment?.description || ""}
-                    </textarea>
+                    <textarea id="wd-description" className="form-control" value={form.description}
+                        onChange={(e) => setForm({ ...form, description: e.target.value })} />
                 </div>
             </div>
 
             {/* Points Section */}
             <div className="row mb-3">
-                <label htmlFor="wd-points" className="col-sm-3 col-form-label text-end">Point</label>
+                <label htmlFor="wd-points" className="col-sm-3 col-form-label text-end">Points</label>
                 <div className="col-sm-9">
-                    <input id="wd-points" className="form-control" value={assignment?.points || 0} readOnly />
+                    <input id="wd-points" className="form-control" type="number" value={form.points}
+                        onChange={(e) => setForm({ ...form, points: e.target.value })} />
                 </div>
             </div>
 
@@ -122,16 +205,19 @@ export default function AssignmentEditor() {
                         </div>
 
                         <label htmlFor="wd-due-date" className="form-label fw-bold">Due</label>
-                        <input type="datetime-local" className="form-control mb-2" id="wd-due-date" value={assignment ? formatDateTimeForInput(assignment.due_date, true) : ""} />
+                        <input type="datetime-local" className="form-control mb-2" id="wd-due-date" value={form.due_date || ""}
+                            onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
 
                         <div className="row">
                             <div className="col-md-6">
                                 <label htmlFor="wd-available-from" className="form-label fw-bold">Available From</label>
-                                <input type="datetime-local" className="form-control" id="wd-available-from" value={assignment ? formatDateTimeForInput(assignment.available_date, false) : ""}  />
+                                <input type="datetime-local" className="form-control" id="wd-available-from" value={form.available_date || ""}
+                                    onChange={(e) => setForm({ ...form, available_date: e.target.value })} />
                             </div>
                             <div className="col-md-6">
                                 <label htmlFor="wd-available-until" className="form-label fw-bold">Until</label>
-                                <input type="datetime-local" className="form-control" id="wd-available-until" value={assignment ? formatDateTimeForInput(assignment.due_date, true) : ""} />
+                                <input type="datetime-local" className="form-control" id="wd-available-until" value={form.due_date || ""}
+                                    onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
                             </div>
                         </div>
                     </div>
@@ -143,8 +229,8 @@ export default function AssignmentEditor() {
             {/* Cancel and Save Buttons */}
             <div className="row">
                 <div className="col-12 text-end">
-                    <Link to={`/Kanbas/Courses/${cid}/Assignments`} className="btn btn-secondary me-2">Cancel</Link>
-                    <Link to={`/Kanbas/Courses/${cid}/Assignments`} className="btn btn-danger">Save</Link>
+                    <Link to={`/Kanbas/Courses/${cid}/Assignments`} className="btn btn-secondary me-2" onClick={handleCancel}>Cancel</Link>
+                    <Link to={`/Kanbas/Courses/${cid}/Assignments`} className="btn btn-danger" onClick={handleSave}>Save</Link>
                 </div>
             </div>
         </div>
