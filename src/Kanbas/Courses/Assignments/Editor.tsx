@@ -4,8 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { addAssignment, updateAssignment } from "./reducer";
 
 export default function AssignmentEditor() {
-    const { currentUser } = useSelector((state: any) => state.accountReducer);
-
     // Helper function to format dates
     const formatDateTimeForInput = (date: string | undefined, isDueDate = false) => {
         if (!date) {

@@ -5,7 +5,7 @@ import { VscNotebook } from "react-icons/vsc";
 import AssignmentControlButtons from "./AssignmentControlButtons";
 import LessonControlButtons from "../Modules/LessonControlButtons";
 import { FaTrash } from "react-icons/fa";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { format } from 'date-fns'; // To format the dates
 import { useSelector, useDispatch } from "react-redux";
 import { deleteAssignment } from "./reducer";
