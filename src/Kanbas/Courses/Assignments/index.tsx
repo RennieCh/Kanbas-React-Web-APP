@@ -6,7 +6,7 @@ import AssignmentControlButtons from "./AssignmentControlButtons";
 import LessonControlButtons from "../Modules/LessonControlButtons";
 import { FaTrash } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
-import { format } from 'date-fns'; // To format the dates
+import { format } from 'date-fns';
 import { useSelector, useDispatch } from "react-redux";
 import { deleteAssignment } from "./reducer";
 import { useState } from "react";
@@ -19,7 +19,6 @@ export default function Assignments() {
     const { currentUser } = useSelector((state: any) => state.accountReducer); // Get currentUser from accountReducer
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
     const [showModal, setShowModal] = useState(false);
     const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
 
