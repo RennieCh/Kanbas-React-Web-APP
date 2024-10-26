@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { useState } from "react";
-import { enrollCourse, unenrollCourse } from "./reducer"; // Import actions
+import { useState, useEffect } from "react";
+import { enrollCourse, unenrollCourse } from "./reducer";
 
 export default function Dashboard({
     courses,
@@ -22,6 +22,42 @@ export default function Dashboard({
     const { enrollments } = useSelector((state: any) => state.enrollmentReducer); // Get enrollment state from reducer
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
+    const handleAddCourse = () => {
+        const newCourseId = new Date().getTime().toString();
+        setCourse({ ...course, _id: newCourseId });
+        addNewCourse();  // No arguments
+
+        if (currentUser && currentUser._id) {
+            dispatch(enrollCourse({ user: currentUser._id, course: newCourseId }));
+        }
+
+        // Reset course to default after adding
+        setCourse({
+            _id: "0",
+            name: "New Course",
+            number: "New Number",
+            startDate: "2023-09-10",
+            endDate: "2023-12-15",
+            image: "/images/reactjs.jpg",
+            description: "New Description"
+        });
+    };
+
+    const handleUpdateCourse = () => {
+        updateCourse();
+    
+        // Reset course to default after updating
+        setCourse({
+            _id: "0",
+            name: "New Course",
+            number: "New Number",
+            startDate: "2023-09-10",
+            endDate: "2023-12-15",
+            image: "/images/reactjs.jpg",
+            description: "New Description"
+        });
+    };
 
     // State to toggle between all courses and enrolled courses
     const [showAllCourses, setShowAllCourses] = useState(false);
@@ -63,6 +99,13 @@ export default function Dashboard({
         return courseId.startsWith("RS") ? `/images/${courseId.toLowerCase()}.jpg` : "/images/reactjs.jpg";
     };
 
+    // for debugging purpose
+    useEffect(() => {
+        console.log("Courses prop updated in Dashboard:", courses);
+        console.log("Enrollments updated:", enrollments);
+        console.log("Filtered courses for display:", filteredCourses);
+    }, [courses, enrollments, filteredCourses]);
+
     return (
         <div id="wd-dashboard">
             <h1 id="wd-dashboard-title">Dashboard</h1>
@@ -70,10 +113,16 @@ export default function Dashboard({
             {currentUser.role === "FACULTY" && ( // Only show controls if user is FACULTY
                 <>
                     <h5>New Course
-                        <button className="btn btn-primary float-end" id="wd-add-new-course-click" onClick={addNewCourse}>
+                        <button
+                            className="btn btn-primary float-end"
+                            id="wd-add-new-course-click"
+                            onClick={handleAddCourse}
+                        >
                             Add
                         </button>
-                        <button className="btn btn-warning float-end me-2" onClick={updateCourse} id="wd-update-course-click">
+                        <button className="btn btn-warning float-end me-2"
+                            onClick={handleUpdateCourse}
+                            id="wd-update-course-click">
                             Update
                         </button>
                     </h5><br />
@@ -107,7 +156,18 @@ export default function Dashboard({
                                         {course.description}
                                     </p>
                                     <button onClick={() => handleGoToCourse(course._id)} className="btn btn-primary">Go</button>
-
+                                    {currentUser.role === "FACULTY" && ( // Only show controls if user is FACULTY
+                                        <>
+                                            <button onClick={(event) => { event.preventDefault(); deleteCourse(course._id); }}
+                                                className="btn btn-danger float-end" id="wd-delete-course-click">
+                                                Delete
+                                            </button>
+                                            <button id="wd-edit-course-click" onClick={(event) => { event.preventDefault(); setCourse(course); }}
+                                                className="btn btn-warning me-2 float-end">
+                                                Edit
+                                            </button>
+                                        </>
+                                    )}
                                     {currentUser.role === "STUDENT" && showAllCourses && (
                                         <>
                                             {enrollments.some((enrollment: any) => enrollment.user === currentUser._id && enrollment.course === course._id) ? (
