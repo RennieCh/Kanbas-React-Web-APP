@@ -136,7 +136,7 @@ export default function Dashboard({
                 <h2 id="wd-dashboard-published">Published Courses ({filteredCourses.length})</h2>
                 {currentUser.role === "STUDENT" && (
                     <button className="btn btn-primary float-end" onClick={toggleEnrollments}>
-                        {showAllCourses ? "Show Enrolled Courses" : "Show All Courses"}
+                        {showAllCourses ? "Enrollment : Show Enrolled Courses" : "Enrollment : Show All Courses"}
                     </button>
                 )}
             </div>

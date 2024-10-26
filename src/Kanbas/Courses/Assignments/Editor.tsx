@@ -4,43 +4,32 @@ import { useDispatch, useSelector } from "react-redux";
 import { addAssignment, updateAssignment } from "./reducer";
 
 export default function AssignmentEditor() {
-    // Helper function to format dates
-    const formatDateTimeForInput = (date: string | undefined, isDueDate = false) => {
-        if (!date) {
-            return ""; // Handle undefined or empty date
-        }
-
-        let dateObj;
-        if (date.includes("T")) {
-            dateObj = new Date(date); // If it includes time, parse it directly
-        } else {
-            dateObj = new Date(`${date}T00:00:00`); // Add "T00:00:00" if only a date is provided
-        }
-
-        if (isNaN(dateObj.getTime())) {
-            return ""; // Handle invalid date
-        }
-
-        if (isDueDate) {
-            dateObj.setHours(23, 59, 0, 0); // Set to 11:59 PM for due dates
-        } else {
-            dateObj.setHours(0, 0, 0, 0); // Set to 12:00 AM for available dates
-        }
-
-        const year = dateObj.getFullYear();
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const day = String(dateObj.getDate()).padStart(2, '0');
-        const hours = String(dateObj.getHours()).padStart(2, '0');
-        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    // Helper function to format dates for "date" type HTML input
+    const dateObjectToHtmlDateString = (date: Date) => {
+        return `${date.getFullYear()}-${date.getMonth() + 1 < 10 ? '0' : ''}${date.getMonth() + 1}-${date.getDate() < 10 ? '0' : ''}${date.getDate()}`;
     };
 
-    // Helper function to format dates for saving
+    // Helper function to format dates for "datetime-local" HTML input (for display)
+    const formatDateTimeForInput = (date: string | undefined, isDueDate = false) => {
+        if (!date) return ""; // Handle undefined or empty date
+
+        const dateObj = new Date(date); // Parse the date directly
+
+        // Format the date as "YYYY-MM-DD" for date input fields
+        const formattedDate = dateObjectToHtmlDateString(dateObj);
+
+        // Format the time as per requirement (set to 23:59 if due date)
+        const hours = isDueDate ? '23' : '00';
+        const minutes = isDueDate ? '59' : '00';
+
+        return `${formattedDate}T${hours}:${minutes}`;
+    };
+
+    // Helper function to format dates for saving (without timezone offset issues)
     const formatDateForSave = (date: string | undefined) => {
         if (!date) return ""; // Handle undefined date
         const dateObj = new Date(date);
-        return dateObj.toISOString().split("T")[0]; // Convert to "YYYY-MM-DD" format for storage
+        return dateObjectToHtmlDateString(dateObj); // Save in "YYYY-MM-DD" format
     };
 
     const { cid, aid } = useParams(); // Get courseId (cid) and assignmentId (aid) from URL
