@@ -7,14 +7,14 @@ export default function WorkingWithObjectsAsynchronously() {
         const assignment = await client.fetchAssignment();
         setAssignment(assignment);
     };
+    useEffect(() => {
+        fetchAssignment();
+    }, []);
+
     const updateTitle = async (title: string) => {
         const updatedAssignment = await client.updateTitle(title);
         setAssignment(updatedAssignment);
     };
-
-    useEffect(() => {
-        fetchAssignment();
-    }, []);
     return (
         <div id="wd-asynchronous-objects">
             <h3>Working with Objects Asynchronously</h3>
