@@ -75,11 +75,6 @@ export default function WorkingWithObjects() {
                     Update Completed Status
                 </a>
             </div>
-
-
-
-
-
             <hr />
             <h4>Retrieving Module Objects</h4>
             <a id="wd-retrieve-module" className="btn btn-primary"
@@ -111,7 +106,6 @@ export default function WorkingWithObjects() {
                 onChange={(e) =>
                     setModule({ ...module, description: e.target.value })} />
             <hr />
-
         </div>
     );
 }
