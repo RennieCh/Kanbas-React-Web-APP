@@ -98,9 +98,7 @@ export default function WorkingWithArrays() {
                     </label>
                 </div>
             </div>
-            <br /><br />
             <hr />
-
         </div>
     );
 }
