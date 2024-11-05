@@ -7,6 +7,7 @@ import { FaPencil } from "react-icons/fa6";
 
 export default function WorkingWithArraysAsynchronously() {
     const [todos, setTodos] = useState<any[]>([]);
+    const [errorMessage, setErrorMessage] = useState(null);
     const createTodo = async () => {
         const todos = await client.createTodo();
         setTodos(todos);
@@ -29,9 +30,13 @@ export default function WorkingWithArraysAsynchronously() {
     };
 
     const deleteTodo = async (todo: any) => {
-        await client.deleteTodo(todo);
-        const newTodos = todos.filter((t) => t.id !== todo.id);
-        setTodos(newTodos);
+        try {
+            await client.deleteTodo(todo);
+            const newTodos = todos.filter((t) => t.id !== todo.id);
+            setTodos(newTodos);
+        } catch (error: any) {
+            setErrorMessage(error.response.data.message)
+        }
     };
 
     const editTodo = (todo: any) => {
@@ -41,13 +46,18 @@ export default function WorkingWithArraysAsynchronously() {
     };
 
     const updateTodo = async (todo: any) => {
-        await client.updateTodo(todo);
-        setTodos(todos.map((t) => (t.id === todo.id ? todo : t)));
+        try {
+            await client.updateTodo(todo);
+            setTodos(todos.map((t) => (t.id === todo.id ? todo : t)));
+        } catch (error: any) {
+            setErrorMessage(error.response.data.message)
+        }
     };
 
     return (
         <div id="wd-asynchronous-arrays">
             <h3>Working with Arrays Asynchronously</h3>
+            {errorMessage && (<div id="wd-todo-error-message" className="alert alert-danger mb-2 mt-2">{errorMessage}</div>)}
             <h4>Todos
                 <FaPlusCircle onClick={createTodo} className="text-success float-end fs-3"
                     id="wd-create-todo" />
