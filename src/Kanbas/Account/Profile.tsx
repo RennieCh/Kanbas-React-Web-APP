@@ -10,7 +10,8 @@ export default function Profile() {
   const navigate = useNavigate();
   const { currentUser } = useSelector((state: any) => state.accountReducer);
 
-  const signout = () => {
+  const signout = async () => {
+    await client.signout();
     dispatch(setCurrentUser(null));
     navigate("/Kanbas/Account/Signin");
   };
@@ -30,8 +31,8 @@ export default function Profile() {
 
   // A5 Added: updateProfile function to handle profile updates
   const updateProfile = async () => {
-    const updatedProfile = await client.updateUser(profile); // Send updated profile to the server
-    dispatch(setCurrentUser(updatedProfile)); // Update Redux store with updated profile
+    const updatedProfile = await client.updateUser(profile);
+    dispatch(setCurrentUser(updatedProfile));
   };
 
   return (
