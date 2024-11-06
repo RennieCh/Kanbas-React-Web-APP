@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setCurrentUser } from "./reducer";
+import * as client from "./client";
 
 export default function Profile() {
   const [profile, setProfile] = useState<any>({});
@@ -26,6 +27,12 @@ export default function Profile() {
       });
     }
   }, [currentUser, navigate]); // Dependencies
+
+  // A5 Added: updateProfile function to handle profile updates
+  const updateProfile = async () => {
+    const updatedProfile = await client.updateUser(profile); // Send updated profile to the server
+    dispatch(setCurrentUser(updatedProfile)); // Update Redux store with updated profile
+  };
 
   return (
     <div id="wd-profile-screen" className="p-3">
@@ -108,6 +115,7 @@ export default function Profile() {
             <option value="STUDENT">Student</option>
           </select>
         </div>
+        <button onClick={updateProfile} className="btn btn-primary w-100 mb-2">Update</button>
         <Link to="/Kanbas/Account/Signin" className="btn btn-danger w-100 text-center" onClick={signout}>
           Signout
         </Link>

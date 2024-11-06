@@ -1,33 +1,36 @@
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import * as client from "./client";
+import { useDispatch } from "react-redux";
+import { setCurrentUser } from "./reducer";
 
-import { Link } from "react-router-dom";
 export default function Signup() {
+  const [user, setUser] = useState<any>({});
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const signup = async () => {
+    const currentUser = await client.signup(user);
+    dispatch(setCurrentUser(currentUser));
+    navigate("/Kanbas/Account/Profile");
+  };
   return (
     <div id="wd-signup-screen" className="container-fluid d-flex flex-column mt-4">
       <h3 className="mb-3">Signup</h3>
       <input
-        id="wd-username"
-        className="form-control mb-2"
+        className="wd-username form-control mb-2"
         placeholder="username"
         type="text"
+        value={user.username} onChange={(e) => setUser({ ...user, username: e.target.value })}
       />
 
       <input
-        id="wd-password"
-        className="form-control mb-2"
+        className="wd-password form-control mb-2"
         placeholder="password"
         type="password"
+        value={user.password} onChange={(e) => setUser({ ...user, password: e.target.value })}
       />
 
-      <input
-        id="wd-password"
-        className="form-control mb-2"
-        placeholder="verify password"
-        type="password"
-      />
-
-      <Link to="/Kanbas/Account/Profile"
-        className="btn btn-primary align-items-center w-100 mb-2"> 
-        Signup </Link>
+      <button onClick={signup} className="wd-signup-btn btn btn-primary mb-2 w-100"> Sign up </button><br />
 
       <Link to="/Kanbas/Account/Signin" >Sign in</Link>
     </div>
