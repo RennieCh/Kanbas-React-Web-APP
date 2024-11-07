@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import { enrollCourse, unenrollCourse } from "./reducer";
+import { fetchAllCourses } from "../Courses/client";
 
 export default function Dashboard({
     courses,
@@ -19,20 +20,18 @@ export default function Dashboard({
     updateCourse: () => void;
 }) {
     const { currentUser } = useSelector((state: any) => state.accountReducer);
-    const { enrollments } = useSelector((state: any) => state.enrollmentReducer); // Get enrollment state from reducer
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const handleAddCourse = () => {
         const newCourseId = new Date().getTime().toString();
         setCourse({ ...course, _id: newCourseId });
-        addNewCourse();  // No arguments
+        addNewCourse();
 
         if (currentUser && currentUser._id) {
             dispatch(enrollCourse({ user: currentUser._id, course: newCourseId }));
         }
 
-        // Reset course to default after adding
         setCourse({
             _id: "0",
             name: "New Course",
@@ -46,8 +45,6 @@ export default function Dashboard({
 
     const handleUpdateCourse = () => {
         updateCourse();
-    
-        // Reset course to default after updating
         setCourse({
             _id: "0",
             name: "New Course",
@@ -59,20 +56,36 @@ export default function Dashboard({
         });
     };
 
+    // **State to store all courses fetched from the server**
+    const [allCourses, setAllCourses] = useState<any[]>([]);
     // State to toggle between all courses and enrolled courses
     const [showAllCourses, setShowAllCourses] = useState(false);
 
-    // Function to toggle between all courses and enrolled courses
+    // **Fetch all courses when showAllCourses is toggled on**
+    useEffect(() => {
+        const fetchAll = async () => {
+            if (showAllCourses) {
+                try {
+                    const fetchedCourses = await fetchAllCourses();
+                    setAllCourses(fetchedCourses);
+                } catch (error) {
+                    console.error("Failed to fetch all courses:", error);
+                }
+            }
+        };
+        fetchAll();
+    }, [showAllCourses]);
+
+    // **Create a list of enrolled course IDs**
+    const enrolledCoursesIds = courses.map((course) => course._id);
+
+    // Toggle function to switch between all and enrolled courses
     const toggleEnrollments = () => {
         setShowAllCourses(!showAllCourses);
     };
 
-    // Filter courses based on enrollment state
-    const filteredCourses = showAllCourses
-        ? courses // Show all courses when toggled on
-        : courses.filter((course) =>
-            enrollments.some((enrollment: any) => enrollment.user === currentUser._id && enrollment.course === course._id)
-        );
+    // Filter courses based on the `showAllCourses` state
+    const filteredCourses = showAllCourses ? allCourses : courses;
 
     // Handle enrollment
     const handleEnroll = (courseId: string) => {
@@ -86,12 +99,7 @@ export default function Dashboard({
 
     // Protect route to a course, only allow access if enrolled
     const handleGoToCourse = (courseId: string) => {
-        const isEnrolled = enrollments.some((enrollment: any) => enrollment.user === currentUser._id && enrollment.course === courseId);
-        if (isEnrolled) {
-            navigate(`/Kanbas/Courses/${courseId}/Home`);
-        } else {
-            alert("You are not enrolled in this course!");
-        }
+        navigate(`/Kanbas/Courses/${courseId}/Home`);
     };
 
     // Function to generate the image path based on course _id
@@ -102,15 +110,13 @@ export default function Dashboard({
     // for debugging purpose
     useEffect(() => {
         console.log("Courses prop updated in Dashboard:", courses);
-        console.log("Enrollments updated:", enrollments);
-        console.log("Filtered courses for display:", filteredCourses);
-    }, [courses, enrollments, filteredCourses]);
+    }, [courses]);
 
     return (
         <div id="wd-dashboard">
             <h1 id="wd-dashboard-title">Dashboard</h1>
             <hr />
-            {currentUser.role === "FACULTY" && ( // Only show controls if user is FACULTY
+            {currentUser.role === "FACULTY" && (
                 <>
                     <h5>New Course
                         <button
@@ -156,7 +162,7 @@ export default function Dashboard({
                                         {course.description}
                                     </p>
                                     <button onClick={() => handleGoToCourse(course._id)} className="btn btn-primary">Go</button>
-                                    {currentUser.role === "FACULTY" && ( // Only show controls if user is FACULTY
+                                    {currentUser.role === "FACULTY" && (
                                         <>
                                             <button onClick={(event) => { event.preventDefault(); deleteCourse(course._id); }}
                                                 className="btn btn-danger float-end" id="wd-delete-course-click">
@@ -170,7 +176,7 @@ export default function Dashboard({
                                     )}
                                     {currentUser.role === "STUDENT" && showAllCourses && (
                                         <>
-                                            {enrollments.some((enrollment: any) => enrollment.user === currentUser._id && enrollment.course === course._id) ? (
+                                            {enrolledCoursesIds.includes(course._id) ? (
                                                 <button
                                                     className="btn btn-danger float-end"
                                                     onClick={() => handleUnenroll(course._id)}
