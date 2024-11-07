@@ -4,7 +4,6 @@ import Dashboard from "./Dashboard";
 import KanbasNavigation from "./Navigation";
 import Courses from "./Courses";
 import "./styles.css";
-//import * as db from "./Database";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import ProtectedRoute from "./Account/ProtectedRoute";
@@ -45,7 +44,7 @@ export default function Kanbas() {
 
 
     const deleteCourse = async (courseId: string) => {
-        const status = await courseClient.deleteCourse(courseId);
+        await courseClient.deleteCourse(courseId);
         setCourses(courses.filter((course: any) => course._id !== courseId));
     };
 
