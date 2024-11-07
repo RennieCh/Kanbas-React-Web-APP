@@ -28,6 +28,11 @@ export default function Modules() {
     dispatch(deleteModule(moduleId));
   };
 
+  const saveModule = async (module: any) => {
+    await modulesClient.updateModule(module);
+    dispatch(updateModule(module));
+  };
+
   const fetchModules = useCallback(async () => {
     const modules = await coursesClient.findModulesForCourse(cid as string);
     dispatch(setModules(modules));
@@ -62,7 +67,7 @@ export default function Modules() {
                   onChange={(e) => dispatch(updateModule({ ...module, name: e.target.value }))}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      dispatch(updateModule({ ...module, editing: false }));
+                      saveModule({ ...module, editing: false });
                     }
                   }}
                   value={module.name} />
