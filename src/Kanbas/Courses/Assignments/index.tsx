@@ -14,7 +14,6 @@ import { Modal, Button } from 'react-bootstrap';
 import * as coursesClient from "../client";
 import * as assignmentsClient from "./client";
 
-
 export default function Assignments() {
     const { cid } = useParams(); // Get the course ID from the URL
     const { assignments } = useSelector((state: any) => state.assignmentsReducer); // Use assignments from the store
