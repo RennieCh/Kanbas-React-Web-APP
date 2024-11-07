@@ -2,6 +2,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addAssignment, updateAssignment } from "./reducer";
+import * as coursesClient from "../client";
+import * as assignmentsClient from "./client";
 
 // Helper function to format dates for "date" type HTML input
 const dateObjectToHtmlDateString = (date: Date) => {
@@ -57,28 +59,42 @@ export default function AssignmentEditor() {
         available_date: formatDateTimeForInput(assignment.available_date, false),
     } : defaultNewAssignment);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         const formattedDueDate = formatDateForSave(form.due_date);
         const formattedAvailableDate = formatDateForSave(form.available_date);
 
         if (form._id === "new") {
-            // Create a new assignment
-            dispatch(addAssignment({
-                ...form,
-                _id: new Date().getTime().toString(),
-                due_date: formattedDueDate,
-                available_date: formattedAvailableDate,
-            })); // Generate unique ID for new assignment
+            try {
+                // Create a new assignment via coursesClient
+                const newAssignment = await coursesClient.createAssignment(cid!, {
+                    ...form,
+                    due_date: formattedDueDate,
+                    available_date: formattedAvailableDate
+                });
+                dispatch(addAssignment(newAssignment)); // Update local state
+            } catch (error) {
+                console.error("Error creating assignment:", error);
+            }
         } else {
-            // Update existing assignment
-            dispatch(updateAssignment({
-                ...form,
-                due_date: formattedDueDate,
-                available_date: formattedAvailableDate,
-            }));
+            try {
+                // Update existing assignment via assignmentsClient
+                await assignmentsClient.updateAssignment(form._id, {
+                    ...form,
+                    due_date: formattedDueDate,
+                    available_date: formattedAvailableDate
+                });
+                dispatch(updateAssignment({
+                    ...form,
+                    due_date: formattedDueDate,
+                    available_date: formattedAvailableDate
+                })); // Update local state
+            } catch (error) {
+                console.error("Error updating assignment:", error);
+            }
         }
-        navigate(`/Kanbas/Courses/${cid}/Assignments`); // Navigate back to the Assignments screen
+        navigate(`/Kanbas/Courses/${cid}/Assignments`); // Navigate back to Assignments
     };
+    
     const handleCancel = () => {
         // Navigate back to the Assignments screen without saving
         navigate(`/Kanbas/Courses/${cid}/Assignments`);

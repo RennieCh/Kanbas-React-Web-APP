@@ -8,9 +8,11 @@ import { FaTrash } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from 'date-fns';
 import { useSelector, useDispatch } from "react-redux";
-import { deleteAssignment } from "./reducer";
-import { useState } from "react";
+import { deleteAssignment, setAssignments } from "./reducer";
+import { useState, useEffect } from "react";
 import { Modal, Button } from 'react-bootstrap';
+import * as coursesClient from "../client";
+import * as assignmentsClient from "./client";
 
 
 export default function Assignments() {
@@ -22,6 +24,17 @@ export default function Assignments() {
     const [showModal, setShowModal] = useState(false);
     const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
 
+    useEffect(() => {
+        const fetchAssignments = async () => {
+            try {
+                const fetchedAssignments = await coursesClient.fetchAssignments(cid as string);
+                dispatch(setAssignments(fetchedAssignments)); // Store assignments in Redux
+            } catch (error) {
+                console.error("Failed to fetch assignments:", error);
+            }
+        };
+        fetchAssignments();
+    }, [cid, dispatch]);
 
     // Filter assignments for the current course
     const courseAssignments = assignments.filter((assignment: any) => assignment.course === cid);
@@ -45,9 +58,10 @@ export default function Assignments() {
     };
 
     // Handle confirming the deletion
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (selectedAssignment) {
-            dispatch(deleteAssignment(selectedAssignment._id)); // Dispatch the delete action
+            await assignmentsClient.deleteAssignment(selectedAssignment._id); // Delete assignment on server
+            dispatch(deleteAssignment(selectedAssignment._id)); // Remove from Redux
             setSelectedAssignment(null);
             setShowModal(false); // Close the modal after deletion
         }
