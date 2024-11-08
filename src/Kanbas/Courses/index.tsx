@@ -27,7 +27,7 @@ export default function Courses({courses} : {courses:any[];}) {
             <hr />
             <div className="row">
                 <div className="col-md-2 d-none d-lg-block">
-                    <CoursesNavigation /> {/* The navigation now dynamically uses the correct course ID */}
+                    <CoursesNavigation /> {/* The navigation dynamically uses the correct course ID */}
                 </div>
                 <div className="col-md-12 col-lg-10">
                     <Routes>
