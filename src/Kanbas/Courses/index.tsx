@@ -12,7 +12,7 @@ export default function Courses({courses} : {courses:any[];}) {
     const course = courses.find((course) => course._id === cid); // Find the course with the matching ID
     const { pathname } = useLocation();
 
-    // Helper function to format the current section name
+    // Helper function to format the current section name 
     const formatSection = () => {
         const section = pathname.split("/")[4] || "Home"; // Get the current section from the URL
         return section.charAt(0).toUpperCase() + section.slice(1); // Capitalize the section name
