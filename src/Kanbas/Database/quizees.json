@@ -1,0 +1,14 @@
+[{
+    "_id": "0",
+    "course": "RS101",
+    "name": "test",
+    "cloneable": false,
+    "published": "false",
+    "description": "",
+    "shuffleAnswer": false,
+    "timeLimit": "20",
+    "allowMultiAttempts": false,
+    "availableFromDate": "",
+    "dueDate": "",
+    "availableUntilDate": ""
+}]

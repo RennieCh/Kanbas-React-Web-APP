@@ -11,7 +11,6 @@ import Session from "./Account/Session";
 import * as courseClient from "./Courses/client";
 import * as userClient from "./Account/client";
 
-
 export default function Kanbas() {
     const [courses, setCourses] = useState<any[]>([]);
 

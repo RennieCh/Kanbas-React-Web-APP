@@ -1,8 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
-import { enrollCourse, unenrollCourse } from "./reducer";
-import { fetchAllCourses } from "../Courses/client";
+import { enrollCourse } from "./reducer";
+import { fetchAllCourses, fetchAllEnrollments, enrollUser, unenrollUser } from "../Courses/client";
+import { findMyCourses } from "../Account/client";
 
 export default function Dashboard({
     courses,
@@ -23,10 +24,11 @@ export default function Dashboard({
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const handleAddCourse = () => {
+    const handleAddCourse = async () => {
         const newCourseId = new Date().getTime().toString();
         setCourse({ ...course, _id: newCourseId });
-        addNewCourse();
+        await addNewCourse();
+        await refreshEnrolledCourses();
 
         if (currentUser && currentUser._id) {
             dispatch(enrollCourse({ user: currentUser._id, course: newCourseId }));
@@ -43,8 +45,9 @@ export default function Dashboard({
         });
     };
 
-    const handleUpdateCourse = () => {
-        updateCourse();
+    const handleUpdateCourse = async () => {
+        await updateCourse();
+        await refreshEnrolledCourses();
         setCourse({
             _id: "0",
             name: "New Course",
@@ -56,12 +59,46 @@ export default function Dashboard({
         });
     };
 
-    // **State to store all courses fetched from the server**
+    // Optimized handleDeleteCourse function
+    const handleDeleteCourse = async (courseId: string) => {
+        try {
+            // Delete the course on the server
+            await deleteCourse(courseId);
+
+            // Update the local state to remove the deleted course
+            setCourse({
+                _id: "0",
+                name: "New Course",
+                number: "New Number",
+                startDate: "2023-09-10",
+                endDate: "2023-12-15",
+                image: "/images/reactjs.jpg",
+                description: "New Description"
+            });
+
+            // Remove the course from the local courses array without re-fetching
+            setMyEnrolledCourses((prevCourses) =>
+                prevCourses.filter((course) => course._id !== courseId)
+            );
+            setAllCourses((prevCourses) =>
+                prevCourses.filter((course) => course._id !== courseId)
+            );
+        } catch (error) {
+            console.error("Failed to delete course:", error);
+        }
+    };
+
+    // State to store all courses fetched from the server
     const [allCourses, setAllCourses] = useState<any[]>([]);
     // State to toggle between all courses and enrolled courses
     const [showAllCourses, setShowAllCourses] = useState(false);
+    // State to store all enrollment fetched from the server
+    const [enrollments, setEnrollments] = useState<any[]>([]);
+    // Stare to stpre all my enrolled course fetched from the server
+    const [myEnrolledCourses, setMyEnrolledCourses] = useState<any[]>([]);
 
-    // **Fetch all courses when showAllCourses is toggled on**
+
+    // Fetch all courses when showAllCourses is toggled on
     useEffect(() => {
         const fetchAll = async () => {
             if (showAllCourses) {
@@ -76,30 +113,73 @@ export default function Dashboard({
         fetchAll();
     }, [showAllCourses]);
 
-    // **Create a list of enrolled course IDs**
-    const enrolledCoursesIds = courses.map((course) => course._id);
+    // Fetch all enrollments and the user's enrolled courses on component mount
+    useEffect(() => {
+        const fetchEnrollments = async () => {
+            const fetchedEnrollments = await fetchAllEnrollments();
+            setEnrollments(fetchedEnrollments);
+        };
 
-    // Toggle function to switch between all and enrolled courses
-    const toggleEnrollments = () => {
-        setShowAllCourses(!showAllCourses);
+        const fetchMyCourses = async () => {
+            if (currentUser) {
+                const myCourses = await findMyCourses();
+                setMyEnrolledCourses(myCourses);
+            }
+        };
+
+        fetchEnrollments();
+        fetchMyCourses();
+    }, [currentUser]);
+
+    // Refresh the enrolled courses list
+    const refreshEnrolledCourses = async () => {
+        const myCourses = await findMyCourses();
+        setMyEnrolledCourses(myCourses);
     };
 
     // Filter courses based on the `showAllCourses` state
-    const filteredCourses = showAllCourses ? allCourses : courses;
+    const filteredCourses = showAllCourses ? allCourses : myEnrolledCourses;
 
     // Handle enrollment
-    const handleEnroll = (courseId: string) => {
-        dispatch(enrollCourse({ user: currentUser._id, course: courseId }));
+    const handleEnroll = async (courseId: string) => {
+        setEnrollments([...enrollments, { user: currentUser._id, course: courseId }]);
+        try {
+            await enrollUser(currentUser._id, courseId);
+            await refreshEnrolledCourses();
+        } catch (error) {
+            console.error("Failed to enroll in course:", error);
+        }
     };
 
     // Handle unenrollment
-    const handleUnenroll = (courseId: string) => {
-        dispatch(unenrollCourse({ user: currentUser._id, course: courseId }));
+    const handleUnenroll = async (courseId: string) => {
+        setEnrollments(enrollments.filter(enrollment => !(enrollment.user === currentUser._id && enrollment.course === courseId)));
+        try {
+            await unenrollUser(currentUser._id, courseId);
+            await refreshEnrolledCourses();
+        } catch (error) {
+            console.error("Failed to unenroll from course:", error);
+        }
+    };
+
+    // Toggle between showing all courses and only enrolled courses
+    const toggleEnrollments = async () => {
+        setShowAllCourses(!showAllCourses);
+        if (!showAllCourses) {
+            await refreshEnrolledCourses();
+        }
     };
 
     // Protect route to a course, only allow access if enrolled
     const handleGoToCourse = (courseId: string) => {
-        navigate(`/Kanbas/Courses/${courseId}/Home`);
+        const isEnrolled = enrollments.some(
+            (enrollment) => enrollment.user === currentUser._id && enrollment.course === courseId
+        );
+        if (isEnrolled) {
+            navigate(`/Kanbas/Courses/${courseId}/Home`);
+        } else {
+            alert("You are not enrolled in this course!");
+        }
     };
 
     // Function to generate the image path based on course _id
@@ -164,7 +244,7 @@ export default function Dashboard({
                                     <button onClick={() => handleGoToCourse(course._id)} className="btn btn-primary">Go</button>
                                     {currentUser.role === "FACULTY" && (
                                         <>
-                                            <button onClick={(event) => { event.preventDefault(); deleteCourse(course._id); }}
+                                            <button onClick={(event) => { event.preventDefault(); handleDeleteCourse(course._id); }}
                                                 className="btn btn-danger float-end" id="wd-delete-course-click">
                                                 Delete
                                             </button>
@@ -176,7 +256,7 @@ export default function Dashboard({
                                     )}
                                     {currentUser.role === "STUDENT" && showAllCourses && (
                                         <>
-                                            {enrolledCoursesIds.includes(course._id) ? (
+                                            {enrollments.some(enrollment => enrollment.user === currentUser._id && enrollment.course === course._id) ? (
                                                 <button
                                                     className="btn btn-danger float-end"
                                                     onClick={() => handleUnenroll(course._id)}
