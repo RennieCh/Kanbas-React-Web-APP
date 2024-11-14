@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { IoEllipsisVertical } from "react-icons/io5";
 import GreenCheckmark from "./GreenCheckmark";
+import GrayCheckmark from "./GrayCheckmark";
 
-export default function SingleQuizButtons() {
+// Define the type for the component props
+interface SingleQuizButtonsProps {
+  isAvailable: boolean;
+}
+
+export default function SingleQuizButtons({ isAvailable }: SingleQuizButtonsProps) {
   const [showDropdown, setShowDropdown] = useState(false);
 
   // Toggle the dropdown menu visibility
@@ -10,7 +16,8 @@ export default function SingleQuizButtons() {
 
   return (
     <div className="float-end position-relative">
-      <GreenCheckmark />
+      {/* Conditionally render the checkmark based on availability */}
+      {isAvailable ? <GreenCheckmark /> : <GrayCheckmark />}
 
       {/* Dropdown Trigger */}
       <IoEllipsisVertical

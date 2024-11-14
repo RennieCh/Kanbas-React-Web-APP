@@ -1,25 +1,43 @@
 import { PiPencil } from "react-icons/pi";
 import { useNavigate, useParams } from "react-router-dom";
+import { quizzes } from "../../Database";
 
 export default function QuizzesDetails() {
     const navigate = useNavigate();
-    const { aid } = useParams(); // Get the quiz ID from the URL
+    const { cid, aid } = useParams<{ cid: string; aid: string }>(); // Get the course ID and quiz ID from the URL
 
-    // Function to handle navigation to the Editor screen, use 123 id as placeholder
+    // Fetch the quiz based on the course ID and aid parameter
+    const quiz = quizzes.find(q => q._id === aid && q.course === cid);
+
+    // Handle the case where the quiz is not found
+    if (!quiz) {
+        return (
+            <div className="container mt-5">
+                <h4 className="text-danger">Quiz not found for this course!</h4>
+                <p>Please check if the course and quiz IDs are correct.</p>
+            </div>
+        );
+    }
+
+    // Function to handle navigation to the Editor screen
     const handleEditClick = () => {
-        if (aid) {
-            navigate(`/Kanbas/Courses/1234/Quizzes/123/edit`);
+        if (cid && aid) {
+            navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/edit`);
         }
     };
 
     // Handler to navigate to QuizPreview
     const handlePreview = () => {
-        navigate("/Kanbas/Courses/1234/Quizzes/123/Preview");
+        if (cid && aid) {
+            navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/Preview`);
+        }
     };
 
     return (
         <div id="wd-quizzes-details" className="container-fluid mt-4 p-1"
             style={{ maxWidth: '1200px', margin: '0 auto' }}>
+
+            {/* Faculty Quiz Controls */}
             <div id="wd-quizzes-details-btn" className="d-flex justify-content-center align-items-center">
                 <button id="wd-quiz-preview-btn" className="btn btn-lg btn-secondary me-1" onClick={handlePreview}>
                     Preview
@@ -30,7 +48,7 @@ export default function QuizzesDetails() {
                 </button>
             </div>
             <hr />
-            <h3 id="wd-quiz-title">Q1 - HTML</h3>
+            <h3 id="wd-quiz-title">{quiz.title}</h3>
             <br />
 
             <div className="row align-items-center mb-6">
@@ -38,7 +56,7 @@ export default function QuizzesDetails() {
                     <b>Quiz Type</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">Graded Quiz</span>
+                    <span className="align-middle">{quiz.type}</span>
                 </div>
             </div>
 
@@ -47,7 +65,7 @@ export default function QuizzesDetails() {
                     <b>Points</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">29</span>
+                    <span className="align-middle">{quiz.points}</span>
                 </div>
             </div>
 
@@ -56,7 +74,7 @@ export default function QuizzesDetails() {
                     <b>Assignment Group</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">QUIZZES</span>
+                    <span className="align-middle">{quiz.assignmentGroup}</span>
                 </div>
             </div>
 
@@ -65,7 +83,7 @@ export default function QuizzesDetails() {
                     <b>Shuffle Answers</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">No</span>
+                    <span className="align-middle">{quiz.shuffleAnswer ? "Yes" : "No"}</span>
                 </div>
             </div>
 
@@ -74,7 +92,7 @@ export default function QuizzesDetails() {
                     <b>Time Limit</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">30 Minutes</span>
+                    <span className="align-middle">{quiz.timeLimit} Minutes</span>
                 </div>
             </div>
 
@@ -83,25 +101,25 @@ export default function QuizzesDetails() {
                     <b>Multiple Attempts</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">No</span>
+                    <span className="align-middle">{quiz.allowMultiAttempts ? "Yes" : "No"}</span>
                 </div>
             </div>
 
             <div className="row align-items-center mb-6">
                 <label className="col-sm-6 col-form-label text-end">
-                    <b>View Responses</b>
+                    <b>How Many Attempts</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">Always</span>
+                    <span className="align-middle">{quiz.numberOfAttempts}</span>
                 </div>
             </div>
 
             <div className="row align-items-center mb-6">
                 <label className="col-sm-6 col-form-label text-end">
-                    <b>Show Correct Answers</b>
+                    <b>Show Correct Answers</ b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">Immediately</span>
+                    <span className="align-middle">{quiz.showCorrectAnswers}</span>
                 </div>
             </div>
 
@@ -110,25 +128,16 @@ export default function QuizzesDetails() {
                     <b>One Question at a Time</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">Yes</span>
+                    <span className="align-middle">{quiz.oneQuestionaTime ? "Yes" : "No"}</span>
                 </div>
             </div>
 
             <div className="row align-items-center mb-6">
                 <label className="col-sm-6 col-form-label text-end">
-                    <b>Require Respondus LockDown Browser</b>
+                    <b>Access Code</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">No</span>
-                </div>
-            </div>
-
-            <div className="row align-items-center mb-6">
-                <label className="col-sm-6 col-form-label text-end">
-                    <b>Required to View Quiz Results</b>
-                </label>
-                <div className="col-sm-6">
-                    <span className="align-middle">No</span>
+                    <span className="align-middle">{quiz.accessCode}</span>
                 </div>
             </div>
 
@@ -137,7 +146,7 @@ export default function QuizzesDetails() {
                     <b>Webcam Required</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">No</span>
+                    <span className="align-middle">{quiz.webCam ? "Yes" : "No"}</span>
                 </div>
             </div>
 
@@ -146,7 +155,7 @@ export default function QuizzesDetails() {
                     <b>Lock Questions After Answering</b>
                 </label>
                 <div className="col-sm-6">
-                    <span className="align-middle">No</span>
+                    <span className="align-middle">{quiz.lockQuestionsAfterAnswering ? "Yes" : "No"}</span>
                 </div>
             </div>
             <br />
@@ -161,12 +170,17 @@ export default function QuizzesDetails() {
             <hr />
             <div className="row">
                 {/* Values Row */}
-                <div className="col-3 text-center">Sep 21 at 1 pm</div>
+                <div className="col-3 text-center">{new Date(quiz.dueDate).toLocaleString()}</div>
                 <div className="col-3 text-center">Everyone</div>
-                <div className="col-3 text-center">Sep 21 at 11:40 am</div>
-                <div className="col-3 text-center">Sep 21 at 1 pm</div>
+                <div className="col-3 text-center">{new Date(quiz.availableFromDate).toLocaleString()}</div>
+                <div className="col-3 text-center">{new Date(quiz.availableUntilDate).toLocaleString()}</div>
             </div>
             <hr />
+
+            {/* start Quiz section for Student users */}
+            <div className="d-flex justify-content-center mt-3">
+                <button type="button" className="btn btn-secondary me-3">Start Quiz</button>
+            </div>
         </div>
     );
 }

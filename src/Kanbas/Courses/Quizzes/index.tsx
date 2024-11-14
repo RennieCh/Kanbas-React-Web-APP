@@ -1,154 +1,99 @@
+import React from 'react';
 import QuizzesControls from "./QuizzesControls";
 import { VscTriangleDown } from "react-icons/vsc";
 import { IoRocketOutline } from "react-icons/io5";
 import SingleQuizButtons from "./SingleQuizButtons";
+import { quizzes } from "../../Database"; // Import quizzes from database
+import { useParams } from "react-router-dom";
 
 export default function Quizzes() {
+    const { cid } = useParams(); // Get the course ID from the URL
+    const currentDate = new Date();
+
+    // Filter quizzes by the current course ID
+    const courseQuizzes = quizzes.filter(quiz => quiz.course === cid);
+
+    // Function to determine quiz availability status
+    const getAvailabilityStatus = (quiz: any) => {
+        const availableFromDate = new Date(quiz.availableFromDate);
+        const availableUntilDate = new Date(quiz.availableUntilDate);
+
+        if (currentDate < availableFromDate) {
+            return { status: "Not available", isAvailable: false };
+        } else if (currentDate >= availableFromDate && currentDate <= availableUntilDate) {
+            return { status: "Available", isAvailable: true };
+        } else {
+            return { status: "Closed", isAvailable: false };
+        }
+    };
 
     return (
         <div className="container-fluid">
             <div id="wd-quizzes">
-                <QuizzesControls /> <br />
+                <QuizzesControls />
+                <br />
                 <hr />
                 <br />
 
-                <ul id="wd-assignment-list" className="list-group rounded-0 w-100">
-                    <li className="wd-assignment-list-item list-group-item p-0 mb-5 fs-5 border-gray">
-                        <div className="p-3 ps-2 bg-secondary">
-                            <VscTriangleDown className="me-2 fs-5" />
-                            <span style={{ fontWeight: "bold", color: "black" }}>Assignments Quizzes</span>
-                        </div>
+                {/* Conditional Rendering */}
+                {courseQuizzes.length === 0 ? (
+                    <div className="alert alert-warning" role="alert">
+                        <b>Click the '+ Quiz' button to Create a New Quiz !!!!</b>
+                    </div>
+                ) : (
+                    <ul id="wd-assignment-list" className="list-group rounded-0 w-100">
+                        <li className="wd-assignment-list-item list-group-item p-0 mb-5 fs-5 border-gray">
+                            <div className="p-3 ps-2 bg-secondary">
+                                <VscTriangleDown className="me-2 fs-5" />
+                                <span style={{ fontWeight: "bold", color: "black" }}>Assignments Quizzes</span>
+                            </div>
 
-                        <ul className="wd-lessons list-group rounded-0">
-                            <li className="wd-lesson list-group-item p-3 ps-1">
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <div className="d-flex align-items-center">
-                                        <IoRocketOutline className="me-4 fs-3 text-success" />
-                                    </div>
+                            {/* Dynamic List of Quizzes */}
+                            <ul className="wd-lessons list-group rounded-0">
+                                {courseQuizzes.map(quiz => {
+                                    const { status, isAvailable } = getAvailabilityStatus(quiz);
+                                    return (
+                                        <li key={quiz._id} className="wd-lesson list-group-item p-3 ps-1">
+                                            <div className="d-flex justify-content-between align-items-center">
+                                                <div className="d-flex align-items-center">
+                                                    <IoRocketOutline className="me-4 fs-3 text-success" />
+                                                </div>
 
-                                    <div className="text-left flex-grow-1">
-                                        <a className="wd-assignment-link"
-                                            href="#/Kanbas/Courses/1234/Quizzes/123"
-                                            style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
-                                            Q1 - HTML
-                                        </a>
-                                        <br />
-                                        <b>Closed |</b><b>Due</b> Sep 21 at 1:00pm | 29 pts | 11 Questions
-                                    </div>
-                                    <SingleQuizButtons />
+                                                {/* Quiz Details */}
+                                                <div className="text-left flex-grow-1">
+                                                    <a
+                                                        className="wd-assignment-link"
+                                                        href={`#/Kanbas/Courses/${quiz.course}/Quizzes/${quiz._id}`}
+                                                        style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}
+                                                    >
+                                                        {quiz.title}
+                                                    </a>
+                                                    <br />
+                                                    {/* Availability, Due Date, Points, and Questions Count */}
+                                                    <div>
+                                                        <b>{status}</b> | <b>Due </b>
+                                                        {new Date(quiz.dueDate).toLocaleDateString("en-US", {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            hour: 'numeric',
+                                                            minute: 'numeric'
+                                                        })}
+                                                        {" | "}
+                                                        {quiz.points} pts | {quiz.questions.length} Questions
+                                                    </div>
+                                                </div>
 
-                                </div>
-                            </li>
-
-                            <li className="wd-lesson list-group-item p-3 ps-1">
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <div className="d-flex align-items-center">
-                                        <IoRocketOutline className="me-4 fs-3 text-success" />
-                                    </div>
-                                    <div className="text-left flex-grow-1">
-                                        <a className="wd-assignment-link"
-                                            href="#/Kanbas/Courses/1234/Quizzes/123"
-                                            style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
-                                            Q2 - CSS
-                                        </a>
-                                        <br />
-                                        <b>Closed |</b><b>Due</b> Oct 5 at 1:00pm | 32 pts | 7 Questions
-                                    </div>
-                                    <SingleQuizButtons />
-                                </div>
-                            </li>
-
-                            <li className="wd-lesson list-group-item p-3 ps-1">
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <div className="d-flex align-items-center">
-                                        <IoRocketOutline className="me-4 fs-3 text-success" />
-                                    </div>
-                                    <div className="text-left flex-grow-1">
-                                        <a className="wd-assignment-link"
-                                            href="#/Kanbas/Courses/1234/Quizzes/123"
-                                            style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
-                                            EXAM 1 FA 23
-                                        </a>
-                                        <br />
-                                        <b>Closed |</b><b>Due</b> Oct 26 at 5:30pm | 113 pts | 20 Questions
-                                    </div>
-                                    <SingleQuizButtons />
-                                </div>
-                            </li>
-
-                            <li className="wd-lesson list-group-item p-3 ps-1">
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <div className="d-flex align-items-center">
-                                        <IoRocketOutline className="me-4 fs-3 text-success" />
-                                    </div>
-                                    <div className="text-left flex-grow-1">
-                                        <a className="wd-assignment-link"
-                                            href="#/Kanbas/Courses/1234/Quizzes/123"
-                                            style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
-                                            Q3 - JS, ES6
-                                        </a>
-                                        <br />
-                                        <b>Available </b><span className="text-danger">Multiple Dates</span> | <b>Due</b> <span className="text-danger">Multiple Dates</span> | 38 pts | 13 Questions<br />
-                                    </div>
-                                    <SingleQuizButtons />
-                                </div>
-                            </li>
-
-                            <li className="wd-lesson list-group-item p-3 ps-1">
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <div className="d-flex align-items-center">
-                                        <IoRocketOutline className="me-4 fs-3 text-success" />
-                                    </div>
-                                    <div className="text-left flex-grow-1">
-                                        <a className="wd-assignment-link"
-                                            href="#/Kanbas/Courses/1234/Quizzes/123"
-                                            style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
-                                            Q3
-                                        </a>
-                                        <br />
-                                        <b>Available </b><span className="text-danger">Multiple Dates</span> | <b>Due</b> <span className="text-danger">Multiple Dates</span> | 31 pts | 8 Questions<br />
-                                    </div>
-                                    <SingleQuizButtons />
-                                </div>
-                            </li>
-
-                            <li className="wd-lesson list-group-item p-3 ps-1">
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <div className="d-flex align-items-center">
-                                        <IoRocketOutline className="me-4 fs-3 text-success" />
-                                    </div>
-                                    <div className="text-left flex-grow-1">
-                                        <a className="wd-assignment-link"
-                                            href="#/Kanbas/Courses/1234/Quizzes/123"
-                                            style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
-                                            Q5 - MONGO
-                                        </a>
-                                        <br />
-                                        <b>Not available until</b> Nov 30 at 11:40am |<b> Due</b> Nov 30 at 11:40am | 38 pts | 10 Questions
-                                    </div>
-                                    <SingleQuizButtons />
-                                </div>
-                            </li>
-                            <li className="wd-lesson list-group-item p-3 ps-1">
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <div className="d-flex align-items-center">
-                                        <IoRocketOutline className="me-4 fs-3 text-success" />
-                                    </div>
-                                    <div className="text-left flex-grow-1">
-                                        <a className="wd-assignment-link"
-                                            href="#/Kanbas/Courses/1234/Quizzes/123"
-                                            style={{ textDecoration: "none", fontWeight: "bold", color: "black" }}>
-                                            EXAM 2 FA23
-                                        </a>
-                                        <br />
-                                        <b>Not available until</b> Dec 15 at 10:30am |<b> Due</b> Dec 15 at 10:30am | 104 pts | 18 Questions
-                                    </div>
-                                    <SingleQuizButtons />
-                                </div>
-                            </li>
-                        </ul>
-                    </li>
-                </ul><br/>
+                                                {/* Quiz Action Buttons with availability status */}
+                                                <SingleQuizButtons isAvailable={isAvailable} />
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </li>
+                    </ul>
+                )}
+                <br />
             </div>
         </div>
     );

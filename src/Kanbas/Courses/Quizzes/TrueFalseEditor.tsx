@@ -1,25 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import QuestionTool from "./questiontool";
 import { ImArrowRight } from "react-icons/im";
 
-type Answer = {
-    id: number;
-    text: string;
-    isCorrect: boolean;
-};
 
 export default function TrueFalseEditor() {
-    const [answers, setAnswers] = useState<Answer[]>([
-        { id: 1, text: "True", isCorrect: true },
-        { id: 2, text: "False", isCorrect: false }
-    ]);
-
-    const handleSelectCorrect = (id: number) => {
-        setAnswers(answers.map(answer => ({
-            ...answer,
-            isCorrect: answer.id === id
-        })));
-    };
 
     return (
         <div className="container mt-4">
@@ -45,26 +29,38 @@ export default function TrueFalseEditor() {
             {/* Answers Section */}
             <div className="mb-4">
                 <h4>Answers:</h4>
-                {answers.map((answer) => (
-                    <div key={answer.id} className="d-flex align-items-center mb-3">
-                        {/* Correct Answer Icon */}
-                        <div className="me-2">
-                            {answer.isCorrect ? (
-                                <ImArrowRight className="text-success fs-4" />
-                            ) : (
-                                <ImArrowRight className="text-muted fs-4" />
-                            )}
-                        </div>
-                        <span
-                            className={`fw-bold ${answer.isCorrect ? "text-success" : ""}`}
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleSelectCorrect(answer.id)}
-                        >
-                            {answer.text}
-                        </span>
+
+                {/* Row 1: True Answer */}
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                    {/* True Label */}
+                    <div className="d-flex align-items-center">
+                        <ImArrowRight className="text-success fs-4 me-2" />
+                        <span className="fw-bold text-success">True</span>
                     </div>
-                ))}
+
+                    {/* Checkbox */}
+                    <div className="form-check">
+                        <input className="form-check-input" type="checkbox" checked />
+                        <label className="form-check-label">Mark Correct</label>
+                    </div>
+                </div>
+
+                {/* Row 2: False Answer */}
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                    {/* False Label */}
+                    <div className="d-flex align-items-center">
+                        <ImArrowRight className="text-muted fs-4 me-2" />
+                        <span className="fw-bold">False</span>
+                    </div>
+
+                    {/* Checkbox */}
+                    <div className="form-check">
+                        <input className="form-check-input" type="checkbox" />
+                        <label className="form-check-label">Mark Correct</label>
+                    </div>
+                </div>
             </div>
+
             <hr />
             {/* Save and Cancel Buttons */}
             <div className="d-flex justify-content-center mt-4">
