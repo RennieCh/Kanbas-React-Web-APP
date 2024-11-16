@@ -6,16 +6,18 @@ import Toolbar from "./toolbar";
 import ParagraphTool from "./paragraphtool";
 import QuestionEditorGate from "./QuestionEditorGate";
 import GreenCheckmark from "./GreenCheckmark";
-import { quizzes } from "../../Database";
 import { useParams } from "react-router-dom";
-
+import { useSelector } from "react-redux";
 
 
 export default function QuizzesEditor() {
     const { cid, aid } = useParams<{ cid: string; aid: string }>(); // Get the course ID and quiz ID from the URL
 
-    // Fetch the quiz based on the course ID and aid parameter
-    const quiz = quizzes.find(q => q._id === aid && q.course === cid);
+    // Get quizzes from the Redux store
+    const quizzes = useSelector((state) => (state as any).quizzesReducer.quizzes);
+
+    // Fetch the quiz based on the course ID and quiz ID from the Redux state
+    const quiz = quizzes.find((q: any) => q._id === aid && q.course === cid);
 
     // Helper function to format dates for "datetime-local" HTML input
     const formatDateTimeForInput = (date: string | undefined) => {

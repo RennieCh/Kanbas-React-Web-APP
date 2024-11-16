@@ -1,0 +1,11 @@
+[
+    {
+        "_id": "SQ1",
+        "studentID":"234",
+        "quizID":"Q1",
+        "score":29,
+        "answer":[""],
+        "attemptTaken":3,
+        "lastAttempt":"1970-05-29T00:00:00.000Z"
+    }
+]

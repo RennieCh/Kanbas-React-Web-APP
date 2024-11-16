@@ -3,15 +3,56 @@ import QuizzesControls from "./QuizzesControls";
 import { VscTriangleDown } from "react-icons/vsc";
 import { IoRocketOutline } from "react-icons/io5";
 import SingleQuizButtons from "./SingleQuizButtons";
-import { quizzes } from "../../Database"; // Import quizzes from database
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { addQuiz } from './reducer';
 
 export default function Quizzes() {
     const { cid } = useParams(); // Get the course ID from the URL
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
     const currentDate = new Date();
 
+    // Get quizzes and questions from the store using useSelector with inline type assertion
+    const quizzes = useSelector((state) => (state as any).quizzesReducer.quizzes);
+    const questions = useSelector((state) => (state as any).quizzesReducer.questions);
+
     // Filter quizzes by the current course ID
-    const courseQuizzes = quizzes.filter(quiz => quiz.course === cid);
+    const courseQuizzes = quizzes.filter((quiz: any) => quiz.course === cid);
+
+    // Function to handle adding a new quiz
+    const addNewQuiz = () => {
+        const newQuizId = new Date().getTime().toString(); // Generate a unique ID
+        const newQuiz = {
+            _id: newQuizId,
+            course: cid || "",
+            title: "Unnamed Quiz",
+            type: "Graded Quiz",
+            points: 0,
+            assignmentGroup: "QUIZZES",
+            published: false,
+            description: "",
+            cloneable: false,
+            shuffleAnswer: true,
+            timeLimit: "20",
+            allowMultiAttempts: false,
+            numberOfAttempts: 1,
+            showCorrectAnswers: "Immediately",
+            oneQuestionaTime: true,
+            accessCode: "",
+            webCam: false,
+            lockQuestionsAfterAnswering: false,
+            availableFromDate: new Date().toISOString().split('T')[0],
+            dueDate: new Date().toISOString().split('T')[0],
+            availableUntilDate: new Date().toISOString().split('T')[0],
+        };
+
+        // Dispatch the action to add the new quiz to the Redux state
+        dispatch(addQuiz(newQuiz));
+
+        // Logic to add quiz using Redux would be added here, for now we'll navigate
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${newQuizId}`);
+    };
 
     // Function to determine quiz availability status
     const getAvailabilityStatus = (quiz: any) => {
@@ -27,10 +68,15 @@ export default function Quizzes() {
         }
     };
 
+    // Function to get the count of questions for a specific quiz
+    const getQuestionsCount = (quizId: string) => {
+        return questions.filter((question: any) => question.quiz === quizId).length;
+    };
+
     return (
         <div className="container-fluid">
             <div id="wd-quizzes">
-                <QuizzesControls />
+                <QuizzesControls addNewQuiz={addNewQuiz} />
                 <br />
                 <hr />
                 <br />
@@ -50,8 +96,9 @@ export default function Quizzes() {
 
                             {/* Dynamic List of Quizzes */}
                             <ul className="wd-lessons list-group rounded-0">
-                                {courseQuizzes.map(quiz => {
+                                {courseQuizzes.map((quiz: any) => {
                                     const { status, isAvailable } = getAvailabilityStatus(quiz);
+                                    const questionCount = getQuestionsCount(quiz._id);
                                     return (
                                         <li key={quiz._id} className="wd-lesson list-group-item p-3 ps-1">
                                             <div className="d-flex justify-content-between align-items-center">
@@ -79,7 +126,7 @@ export default function Quizzes() {
                                                             minute: 'numeric'
                                                         })}
                                                         {" | "}
-                                                        {quiz.points} pts | {quiz.questions.length} Questions
+                                                        {quiz.points} pts | {questionCount} Questions
                                                     </div>
                                                 </div>
 

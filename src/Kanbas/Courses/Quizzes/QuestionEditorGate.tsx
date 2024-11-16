@@ -1,15 +1,25 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 import { IoSearchOutline } from "react-icons/io5";
-import { quizzes } from "../../Database";
+import { quizzes, questions } from "../../Database";
 
 export default function QuestionEditorGate() {
     const navigate = useNavigate();
     const { cid, aid } = useParams<{ cid: string; aid: string }>(); // Get course ID and quiz ID from URL
 
-    // Fetch the quiz based on the course ID and aid parameter
+    const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+
+    // Fetch the quiz based on the course ID and quiz ID parameter
     const quiz = quizzes.find(q => q._id === aid && q.course === cid);
+
+    // Fetch questions from the questions database based on the quiz ID
+    useEffect(() => {
+        if (aid) {
+            const filteredQuestions = questions.filter(question => question.quiz === aid);
+            setQuizQuestions(filteredQuestions);
+        }
+    }, [aid]);
 
     // Handle the case where the quiz is not found
     if (!quiz) {
@@ -38,22 +48,27 @@ export default function QuestionEditorGate() {
     return (
         <div>
             {/* Render list of questions */}
+            {/* Render list of questions */}
             <ol className="list-group list-group-numbered">
-                {quiz.questions.map((question) => (
-                    <li key={question._id} className="list-group-item d-flex justify-content-between align-items-start">
-                        <div className="ms-2 me-auto">
-                            <div className="fw-bold">{question.title || "Untitled Question"}</div>
-                            {question.type} Question | {question.points} Points
-                        </div>
-                        <button
-                            type="button"
-                            className="btn btn-primary me-2"
-                            onClick={() => handleEditQuestion(question._id)}
-                        >
-                            Edit
-                        </button>
-                    </li>
-                ))}
+                {quizQuestions.length === 0 ? (
+                    <div className="alert alert-warning">No questions available. Click 'New Question' to add.</div>
+                ) : (
+                    quizQuestions.map((question) => (
+                        <li key={question._id} className="list-group-item d-flex justify-content-between align-items-start">
+                            <div className="ms-2 me-auto">
+                                <div className="fw-bold">{question.title || "Untitled Question"}</div>
+                                {question.type} Question | {question.points} Points
+                            </div>
+                            <button
+                                type="button"
+                                className="btn btn-primary me-2"
+                                onClick={() => handleEditQuestion(question._id)}
+                            >
+                                Edit
+                            </button>
+                        </li>
+                    ))
+                )}
             </ol>
 
             {/* Buttons for adding new questions or groups */}

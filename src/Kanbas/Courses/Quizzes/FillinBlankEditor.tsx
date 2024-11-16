@@ -1,9 +1,44 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaPlus, FaTrash } from "react-icons/fa";
 import QuestionTool from "./questiontool";
 import { ImArrowRight } from "react-icons/im";
+import { PiPencilLight } from "react-icons/pi";
 
-export default function FillInBlankEditor() {
+type Question = {
+    _id: string;
+    quiz: string;
+    title: string;
+    type: string;
+    points: number;
+    question: string;
+    correctAnswer: string;
+    choices: string[];
+};
+
+type FillInBlankEditorProps = {
+    question: Question;
+};
+
+export default function FillInBlankEditor({ question }: FillInBlankEditorProps) {
+    const [answers, setAnswers] = useState(question.choices);
+
+    // Handle updating the text of an answer
+    const handleUpdateAnswer = (index: number, newValue: string) => {
+        const updatedAnswers = [...answers];
+        updatedAnswers[index] = newValue;
+        setAnswers(updatedAnswers);
+    };
+
+    // Handle deleting an answer
+    const handleDeleteAnswer = (index: number) => {
+        const updatedAnswers = answers.filter((_, i) => i !== index);
+        setAnswers(updatedAnswers);
+    };
+
+    // Handle adding a new answer
+    const handleAddAnswer = () => {
+        setAnswers([...answers, ""]);
+    };
 
     return (
         <div className="container mt-4">
@@ -16,70 +51,24 @@ export default function FillInBlankEditor() {
             {/* Question Toolbar */}
             <QuestionTool />
 
-            {/* Question Title and Points */}
-            <div className="d-flex align-items-center mb-4">
-                <input
-                    type="text"
-                    className="form-control me-3"
-                    placeholder="Question Title"
-                    style={{ maxWidth: "300px" }}
-                />
-                <input
-                    type="number"
-                    className="form-control"
-                    placeholder="Points"
-                    style={{ width: "100px" }}
-                />
-            </div>
-
             {/* Question Text Area */}
             <div className="mb-4">
                 <textarea
                     className="form-control"
                     id="fillblank-question-text"
                     rows={5}
+                    value={question.question}
                     placeholder="Enter your question here"
+                    onChange={(e) => (question.question = e.target.value)}
                 ></textarea>
             </div>
 
             {/* Answers Section */}
             <div className="mb-4">
                 <h4>Answers:</h4>
-                <div className="container mt-4">
-                    {/* Row 1: Correct Answer */}
-                    <div className="d-flex align-items-center mb-3">
-                        {/* Correct Answer Label and Input */}
-                        <div className="d-flex align-items-center">
-                            <ImArrowRight className="text-success fs-4 me-2" />
-                            <span className="me-3">Correct Answer</span>
-                            <input
-                                type="text"
-                                className="form-control border-success"
-                                style={{ width: "300px" }}
-                                value=""
-                            />
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="ms-auto d-flex align-items-center">
-                            <div className="form-check me-2">
-                                <input className="form-check-input" type="checkbox" checked />
-                                <label className="form-check-label" >
-                                    Mark Correct
-                                </label>
-                            </div>
-                            <button
-                                type="button"
-                                className="btn btn-outline-danger"
-                            >
-                                <FaTrash />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Row 2: Possible Answer */}
-                    <div className="d-flex align-items-center mb-3">
-                        {/* Possible Answer Label and Input */}
+                {answers.map((choice, index) => (
+                    <div key={index} className="d-flex align-items-center mb-3">
+                        {/* Answer Input */}
                         <div className="d-flex align-items-center">
                             <ImArrowRight className="text-muted fs-4 me-2" />
                             <span className="me-3">Possible Answer</span>
@@ -87,32 +76,34 @@ export default function FillInBlankEditor() {
                                 type="text"
                                 className="form-control border-muted"
                                 style={{ width: "300px" }}
-                                value=""
+                                value={choice}
+                                onChange={(e) => handleUpdateAnswer(index, e.target.value)}
                             />
                         </div>
 
                         {/* Action Buttons */}
                         <div className="ms-auto d-flex align-items-center">
-                            <div className="form-check me-2">
-                                <input className="form-check-input" type="checkbox" value="" />
-                                <label className="form-check-label" >
-                                    Mark Correct
-                                </label>
-                            </div>
+                            <button
+                                type="button"
+                                className="btn btn-outline-secondary me-2"
+                            >
+                                <PiPencilLight className="fs-5" style={{ transform: "rotate(270deg)" }} />
+                            </button>
                             <button
                                 type="button"
                                 className="btn btn-outline-danger"
+                                onClick={() => handleDeleteAnswer(index)}
                             >
                                 <FaTrash />
                             </button>
                         </div>
                     </div>
-                </div>
+                ))}
             </div>
 
             {/* Add New Answer Button */}
             <div className="d-flex justify-content-end align-items-center mb-4">
-                <button className="btn btn-link text-danger">
+                <button className="btn btn-link text-danger" onClick={handleAddAnswer}>
                     <FaPlus className="me-2" /> Add Another Answer
                 </button>
             </div>

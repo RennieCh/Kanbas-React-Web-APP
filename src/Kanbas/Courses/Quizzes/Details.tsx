@@ -1,13 +1,16 @@
 import { PiPencil } from "react-icons/pi";
 import { useNavigate, useParams } from "react-router-dom";
-import { quizzes } from "../../Database";
+import { useSelector } from "react-redux";
 
 export default function QuizzesDetails() {
     const navigate = useNavigate();
     const { cid, aid } = useParams<{ cid: string; aid: string }>(); // Get the course ID and quiz ID from the URL
 
-    // Fetch the quiz based on the course ID and aid parameter
-    const quiz = quizzes.find(q => q._id === aid && q.course === cid);
+    // Get quizzes from the store using useSelector with inline type assertion
+    const quizzes = useSelector((state) => (state as any).quizzesReducer.quizzes);
+
+    // Fetch the quiz based on the course ID and quiz ID
+    const quiz = quizzes.find((q: any) => q._id === aid && q.course === cid);
 
     // Handle the case where the quiz is not found
     if (!quiz) {
