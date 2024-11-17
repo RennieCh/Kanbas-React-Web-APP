@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { quizzes, questions } from "../../Database";
 import { BsExclamationCircle, BsQuestionCircle } from "react-icons/bs";
 import { IoMdArrowDropleft, IoMdArrowDropright } from "react-icons/io";
 import { PiPencil } from "react-icons/pi";
 import { CgPentagonRight } from "react-icons/cg";
+import { useParams, useNavigate } from "react-router-dom";
+
 
 type Question = {
     _id: string;
@@ -18,10 +19,11 @@ type Question = {
 };
 
 export default function QuizPreview() {
-    const { quiz } = useParams<{ quiz: string }>();
     const [quizData, setQuizData] = useState<any>(null);
     const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const navigate = useNavigate();
+    const { quiz, cid } = useParams<{ quiz: string; cid: string }>();
 
     // Fetch quiz and its questions on component load
     useEffect(() => {
@@ -59,6 +61,11 @@ export default function QuizPreview() {
     const getCurrentDateTime = () => {
         const now = new Date();
         return now.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "numeric", hour12: true });
+    };
+
+    // Navigate back to Quiz Result Screen
+    const handleSubmit = () => {
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz}/Result`);
     };
 
     return (
@@ -132,7 +139,7 @@ export default function QuizPreview() {
             {/* Footer Section */}
             <div className="d-flex justify-content-end align-items-center mt-3 p-3 border rounded">
                 <span className="text-muted me-3">Quiz saved at {getCurrentDateTime()}</span>
-                <button className="btn btn-secondary">Submit Quiz</button>
+                <button className="btn btn-secondary" onClick={handleSubmit}>Submit Quiz</button>
             </div>
 
             {/* Questions List */}

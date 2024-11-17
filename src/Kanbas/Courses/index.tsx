@@ -11,6 +11,7 @@ import PeopleTable from "./People/Table";
 import { FaAlignJustify } from "react-icons/fa6";
 import QuestionEditor from "./Quizzes/QuestionEditor";
 import QuizPreview from "./Quizzes/QuizPreview";
+import QuizResult from "./Quizzes/QuizResult";
 
 
 export default function Courses({courses} : {courses:any[];}) {
@@ -48,6 +49,7 @@ export default function Courses({courses} : {courses:any[];}) {
                         <Route path="Quizzes/:aid/edit" element={<QuizzesEditor />} />
                         <Route path="Quizzes/:quiz/Questions/:aid/edit" element={<QuestionEditor />} />
                         <Route path="Quizzes/:quiz/Preview" element={<QuizPreview />}/>
+                        <Route path="Quizzes/:quiz/Result" element={<QuizResult />} />
                     </Routes>
                 </div>
             </div>

@@ -49,6 +49,12 @@ export default function FillInBlankEditor({ questionId }: FillInBlankEditorProps
         navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz}/edit#questions`);
     };
 
+    // Update question and navigate back to Quiz Editor with the Questions tab active
+    const handleUpdateQuestion = () => {
+        dispatch(updateQuestion(question));
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz}/edit#questions`);
+    };
+
     return (
         <div className="container mt-4">
             {/* Question Instructions */}
@@ -95,7 +101,8 @@ export default function FillInBlankEditor({ questionId }: FillInBlankEditorProps
                         {/* Action Buttons */}
                         <div className="ms-auto d-flex align-items-center">
                             <button type="button" className="btn btn-outline-secondary me-2">
-                                <PiPencilLight className="fs-5" style={{ transform: "rotate(270deg)" }} />
+                                <PiPencilLight className="fs-5 me-1" style={{ transform: "rotate(270deg)" }} />
+                                Update Answer
                             </button>
                             <button type="button" className="btn btn-outline-danger" onClick={() => handleDeleteAnswer(index)}>
                                 <FaTrash />
@@ -117,7 +124,7 @@ export default function FillInBlankEditor({ questionId }: FillInBlankEditorProps
             {/* Save and Cancel Buttons */}
             <div className="d-flex justify-content-center">
                 <button className="btn btn-secondary me-3" onClick={handleCancel}>Cancel</button>
-                <button className="btn btn-danger">Update Question</button>
+                <button className="btn btn-danger" onClick={handleUpdateQuestion}>Update Question</button>
             </div>
         </div>
     );

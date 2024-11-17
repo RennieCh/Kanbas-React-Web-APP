@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import QuestionTool from "./questiontool";
 import { ImArrowRight } from "react-icons/im";
 import { useSelector, useDispatch } from "react-redux";
@@ -19,6 +19,13 @@ export default function TrueFalseEditor({ questionId }: TrueFalseEditorProps) {
         state.quizzesReducer.questions.find((q: any) => q._id === questionId && q.quiz === quiz)
     );
 
+    useEffect(() => {
+        if (question && question.type === "True/False" && question.choices.length !== 2) {
+            // Update the choices to ["True", "False"] if not already set
+            dispatch(updateQuestion({ ...question, choices: ["True", "False"] }));
+        }
+    }, [dispatch, question]);
+
     if (!question) {
         return <div>Question not found!</div>;
     }
@@ -30,6 +37,12 @@ export default function TrueFalseEditor({ questionId }: TrueFalseEditorProps) {
 
     // Cancel changes and navigate back to Quiz Editor with the Questions tab active
     const handleCancel = () => {
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz}/edit#questions`);
+    };
+
+    // Update question and navigate back to Quiz Editor with the Questions tab active
+    const handleUpdateQuestion = () => {
+        dispatch(updateQuestion(question));
         navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz}/edit#questions`);
     };
 
@@ -88,7 +101,7 @@ export default function TrueFalseEditor({ questionId }: TrueFalseEditorProps) {
             {/* Save and Cancel Buttons */}
             <div className="d-flex justify-content-center mt-4">
                 <button className="btn btn-secondary me-3" onClick={handleCancel}>Cancel</button>
-                <button className="btn btn-danger" onClick={() => dispatch(updateQuestion(question))}>
+                <button className="btn btn-danger" onClick={handleUpdateQuestion}>
                     Update Question
                 </button>
             </div>
