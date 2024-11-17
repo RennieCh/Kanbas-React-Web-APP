@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
 import MultipleChoiceEditor from "./MultipleChoiceEditor";
 import TrueFalseEditor from "./TrueFalseEditor";
 import FillInBlankEditor from "./FillinBlankEditor";
-import { questions } from "../../Database";
+import { useSelector, useDispatch } from "react-redux";
+import { updateQuestion } from "./reducer";
 
 // Define the structure of a Question
 type Question = {
@@ -19,43 +20,44 @@ type Question = {
 
 export default function QuestionEditor() {
     const { quiz, aid } = useParams<{ quiz: string; aid: string }>();
-    const [question, setQuestion] = useState<Question | null>(null);
-    const [questionType, setQuestionType] = useState("");
+    const dispatch = useDispatch();
 
+    // Get the question from Redux state
+    const question = useSelector((state: any) =>
+        state.quizzesReducer.questions.find((q: Question) => q._id === aid && q.quiz === quiz)
+    );
 
-    useEffect(() => {
-        console.log("Extracted params:", { quiz, aid });
+    // Normalize the question type for rendering purposes
+    const normalizedType = question.type.toLowerCase();
+    const questionType =
+        normalizedType === "multiple choice"
+            ? "Multiple Choice"
+            : normalizedType === "true/false"
+            ? "True/False"
+            : normalizedType === "fill in the blank"
+            ? "Fill in the Blank"
+            : "";
 
-        const selectedQuestion = questions.find(q => q._id === aid && q.quiz === quiz);
-        if (selectedQuestion) {
-            console.log("Selected Question Found:", selectedQuestion);
-            setQuestion(selectedQuestion);
+    // Handler for changing question type
+    const handleQuestionTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const newType = event.target.value;
+        dispatch(updateQuestion({ ...question, type: newType }));
+    };
 
-            // Normalize the question type to match the options in your dropdown
-            const normalizedType = selectedQuestion.type.toLowerCase();
-            if (normalizedType === "multiple choice") {
-                setQuestionType("Multiple Choice");
-            } else if (normalizedType === "true/false") {
-                setQuestionType("True/False");
-            } else if (normalizedType === "fill in the blank") {
-                setQuestionType("Fill in the Blank");
-            }
-        } else {
-            console.log("Question not found with ID:", aid);
-        }
-    }, [quiz, aid]);
+    // Handler for updating the question title
+    const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(updateQuestion({ ...question, title: event.target.value }));
+    };
+
+    // Handler for updating points
+    const handlePointsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(updateQuestion({ ...question, points: parseInt(event.target.value) }));
+    };
 
     // If question is not found, show a message
     if (!question) {
         return <div>Question not found!</div>;
     }
-
-    // Handler for changing question type
-    const handleQuestionTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const newType = event.target.value;
-        setQuestionType(newType);
-        setQuestion({ ...question, type: newType });
-    };
 
     return (
         <div className="container mt-5 p-4 border rounded">
@@ -67,7 +69,7 @@ export default function QuestionEditor() {
                     type="text"
                     className="form-control"
                     value={question.title}
-                    onChange={(e) => setQuestion({ ...question, title: e.target.value })}
+                    onChange={handleTitleChange}
                     style={{ width: "300px" }}
                 />
 
@@ -92,7 +94,7 @@ export default function QuestionEditor() {
                         type="number"
                         className="form-control w-50"
                         value={question.points}
-                        onChange={(e) => setQuestion({ ...question, points: parseInt(e.target.value) })}
+                        onChange={handlePointsChange}
                         placeholder="0"
                     />
                 </div>
@@ -100,9 +102,9 @@ export default function QuestionEditor() {
             <hr />
 
             {/* Render the appropriate editor based on the selected question type */}
-            {questionType === "Multiple Choice" && <MultipleChoiceEditor question={question} />}
-            {questionType === "True/False" && <TrueFalseEditor question={question} />}
-            {questionType === "Fill in the Blank" && <FillInBlankEditor question={question} />}
+            {questionType === "Multiple Choice" && <MultipleChoiceEditor questionId={question._id} />}
+            {questionType === "True/False" && <TrueFalseEditor questionId={question._id} />}
+            {questionType === "Fill in the Blank" && <FillInBlankEditor questionId={question._id} />}
         </div>
     );
 }

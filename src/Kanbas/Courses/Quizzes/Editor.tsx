@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MdDoNotDisturbAlt } from "react-icons/md";
 import { IoEllipsisVertical } from "react-icons/io5";
 import { CgShapeHalfCircle } from "react-icons/cg";
@@ -6,12 +6,15 @@ import Toolbar from "./toolbar";
 import ParagraphTool from "./paragraphtool";
 import QuestionEditorGate from "./QuestionEditorGate";
 import GreenCheckmark from "./GreenCheckmark";
-import { useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { updateQuiz } from "./reducer";
 
 
 export default function QuizzesEditor() {
     const { cid, aid } = useParams<{ cid: string; aid: string }>(); // Get the course ID and quiz ID from the URL
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     // Get quizzes from the Redux store
     const quizzes = useSelector((state) => (state as any).quizzesReducer.quizzes);
@@ -35,26 +38,50 @@ export default function QuizzesEditor() {
         return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
 
-    // Local state variables with conditional defaults
-    const [isPublished, setIsPublished] = useState<boolean>(quiz?.published ?? false);
-    const [quizTitle, setQuizTitle] = useState<string>(quiz?.title ?? "Unnamed Quiz");
-    const [quizDescription, setQuizDescription] = useState<string>(quiz?.description ?? "");
-    const [quizType, setQuizType] = useState<string>(quiz?.type ?? "Graded Quiz");
-    const [assignmentGroup, setAssignmentGroup] = useState<string>(quiz?.assignmentGroup ?? "Quizzes");
-    const [shuffleAnswer, setShuffleAnswer] = useState<boolean>(quiz?.shuffleAnswer ?? false);
-    const [timeLimit, setTimeLimit] = useState<string>(quiz?.timeLimit ?? "0");
-    const [allowMultiAttempts, setAllowMultiAttempts] = useState<boolean>(quiz?.allowMultiAttempts ?? false);
-    const [quizShowCorrectAnswers, setQuizShowCorrectAnswers] = useState<string>(quiz?.showCorrectAnswers ?? "Never");
-    const [quizOneQuestionAtATime, setQuizOneQuestionAtATime] = useState<boolean>(quiz?.oneQuestionaTime ?? false);
-    const [quizWebCam, setQuizWebCam] = useState<boolean>(quiz?.webCam ?? false);
-    const [quizLockQuestionsAfterAnswering, setQuizLockQuestionsAfterAnswering] = useState<boolean>(quiz?.lockQuestionsAfterAnswering ?? false);
-    const [quizAccessCode, setQuizAccessCode] = useState<string>(quiz?.accessCode ?? "");
-    // Define state variables for date fields
-    const [dueDate, setDueDate] = useState<string>(formatDateTimeForInput(quiz?.dueDate));
-    const [availableFromDate, setAvailableFromDate] = useState<string>(formatDateTimeForInput(quiz?.availableFromDate));
-    const [availableUntilDate, setAvailableUntilDate] = useState<string>(formatDateTimeForInput(quiz?.availableUntilDate));
-    const [activeTab, setActiveTab] = useState("details");
+    // state variables with conditional defaults
+    const [isPublished, setIsPublished] = useState<boolean>(quiz.published);
+    const [quizTitle, setQuizTitle] = useState<string>(quiz.title);
+    const [quizDescription, setQuizDescription] = useState<string>(quiz.description);
+    const [quizType, setQuizType] = useState<string>(quiz.type);
+    const [assignmentGroup, setAssignmentGroup] = useState<string>(quiz.assignmentGroup);
+    const [shuffleAnswer, setShuffleAnswer] = useState<boolean>(quiz.shuffleAnswer);
+    const [timeLimit, setTimeLimit] = useState<string>(quiz.timeLimit);
+    const [allowMultiAttempts, setAllowMultiAttempts] = useState<boolean>(quiz.allowMultiAttempts);
+    const [quizShowCorrectAnswers, setQuizShowCorrectAnswers] = useState<string>(quiz.showCorrectAnswers);
+    const [quizOneQuestionAtATime, setQuizOneQuestionAtATime] = useState<boolean>(quiz.oneQuestionaTime);
+    const [quizWebCam, setQuizWebCam] = useState<boolean>(quiz.webCam);
+    const [quizLockQuestionsAfterAnswering, setQuizLockQuestionsAfterAnswering] = useState<boolean>(quiz.lockQuestionsAfterAnswering);
+    const [quizAccessCode, setQuizAccessCode] = useState<string>(quiz.accessCode);
+    const [dueDate, setDueDate] = useState<string>(formatDateTimeForInput(quiz.dueDate));
+    const [availableFromDate, setAvailableFromDate] = useState<string>(formatDateTimeForInput(quiz.availableFromDate));
+    const [availableUntilDate, setAvailableUntilDate] = useState<string>(formatDateTimeForInput(quiz.availableUntilDate));
+    
+    const [activeTab, setActiveTab] = useState<string>("details");
 
+
+    // Effect to update the active tab when URL hash changes or on initial load
+    useEffect(() => {
+        const updateActiveTabFromHash = () => {
+            const hash = window.location.hash;
+            console.log("Current hash:", hash); // Added console log to print the hash value (debug purpose)
+            if (hash.endsWith("#questions")) {
+                setActiveTab("questions");
+            } else {
+                setActiveTab("details");
+            }
+        };
+
+        // Set the active tab based on the initial hash on component load
+        updateActiveTabFromHash();
+
+        // Listen for hash changes
+        window.addEventListener("hashchange", updateActiveTabFromHash);
+
+        // Cleanup the event listener on unmount
+        return () => {
+            window.removeEventListener("hashchange", updateActiveTabFromHash);
+        };
+    }, []);
 
     // Handle case where the quiz is not found
     if (!quiz) {
@@ -65,14 +92,63 @@ export default function QuizzesEditor() {
             </div>
         );
     }
-    // Function to handle tab switching
+
+    // Function to handle tab switching without modifying the URL hash
     const handleTabSwitch = (tab: string) => {
         setActiveTab(tab);
+        if (tab === "questions") {
+            // Update the URL with full path and #questions
+            navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/edit#questions`);
+        } else {
+            // Update the URL with full path for details
+            navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/edit`);
+        }
     };
+
 
     // Toggle publish status
     const togglePublishStatus = () => {
-        setIsPublished(!isPublished);
+        const updatedStatus = !isPublished;
+        setIsPublished(updatedStatus);
+
+        // Dispatch the action to update the quiz in the Redux store
+        if (quiz) {
+            dispatch(updateQuiz({ ...quiz, published: updatedStatus }));
+        }
+    };
+
+    // Save the quiz to Redux store
+    const handleSave = () => {
+        const updatedQuiz = {
+            ...quiz,
+            published: isPublished,
+            title: quizTitle,
+            description: quizDescription,
+            type: quizType,
+            assignmentGroup: assignmentGroup,
+            shuffleAnswer: shuffleAnswer,
+            timeLimit: timeLimit,
+            allowMultiAttempts: allowMultiAttempts,
+            showCorrectAnswers: quizShowCorrectAnswers,
+            oneQuestionaTime: quizOneQuestionAtATime,
+            webCam: quizWebCam,
+            lockQuestionsAfterAnswering: quizLockQuestionsAfterAnswering,
+            accessCode: quizAccessCode,
+            dueDate: dueDate,
+            availableFromDate: availableFromDate,
+            availableUntilDate: availableUntilDate,
+        };
+
+        // Dispatch the updateQuiz action to save changes to the Redux store
+        dispatch(updateQuiz(updatedQuiz));
+
+        // Navigate to the Quiz Details screen
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}`);
+    };
+
+    // Cancel changes and navigate back to Quiz List screen
+    const handleCancel = () => {
+        navigate(`/Kanbas/Courses/${cid}/Quizzes`);
     };
 
     return (
@@ -286,9 +362,13 @@ export default function QuizzesEditor() {
                     <hr />
                     {/* Buttons for Cancel, Save, Save and Publish */}
                     <div className="d-flex justify-content-center mt-3">
-                        <button type="button" className="btn btn-secondary me-3">Cancel</button>
-                        <button type="button" className="btn btn-secondary me-3" onClick={togglePublishStatus}>Save & Publish</button>
-                        <button type="button" className="btn btn-danger me-3">Save</button>
+                        <button type="button" className="btn btn-secondary me-3" onClick={handleCancel}>Cancel</button>
+                        <button type="button" className="btn btn-secondary me-3"
+                            onClick={() => {
+                                togglePublishStatus();
+                                handleSave();
+                            }}>Save & Publish</button>
+                        <button type="button" className="btn btn-danger me-3" onClick={handleSave}>Save</button>
                     </div>
                     <hr />
                 </form>

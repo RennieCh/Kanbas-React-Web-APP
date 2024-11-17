@@ -1,25 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 import { IoSearchOutline } from "react-icons/io5";
-import { quizzes, questions } from "../../Database";
+import { useSelector, useDispatch } from "react-redux";
+import { addQuestion, deleteQuestion } from "./reducer";
+
+// Define the type for a quiz object (adjust as per your actual type definition)
+interface Quiz {
+    _id: string;
+    course: string;
+}
 
 export default function QuestionEditorGate() {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const { cid, aid } = useParams<{ cid: string; aid: string }>(); // Get course ID and quiz ID from URL
 
-    const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+    // Get quizzes and questions from the Redux store
+    const questions = useSelector((state) => (state as any).quizzesReducer.questions);
+    const quiz = useSelector((state) => (state as any).quizzesReducer.quizzes.find((q: Quiz) => q._id === aid && q.course === cid));
 
-    // Fetch the quiz based on the course ID and quiz ID parameter
-    const quiz = quizzes.find(q => q._id === aid && q.course === cid);
-
-    // Fetch questions from the questions database based on the quiz ID
-    useEffect(() => {
-        if (aid) {
-            const filteredQuestions = questions.filter(question => question.quiz === aid);
-            setQuizQuestions(filteredQuestions);
-        }
-    }, [aid]);
+    // Filter questions based on the quiz ID
+    const quizQuestions = questions.filter((question: any) => question.quiz === aid);
 
     // Handle the case where the quiz is not found
     if (!quiz) {
@@ -31,10 +33,22 @@ export default function QuestionEditorGate() {
         );
     }
 
-    // Handler to navigate to the QuestionEditor
+    // Handler to navigate to the QuestionEditor for adding a new question
     const handleAddQuestion = () => {
         if (cid && aid) {
-            navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/Questions/new`);
+            const newQuestionId = new Date().getTime().toString(); 
+            const newQuestion = {
+                _id: newQuestionId,
+                quiz: aid,
+                title: "New Question",
+                type: "Multiple choice",
+                points: 0,
+                question: "",
+                correctAnswer: "",
+                choices: [""],
+            };
+            dispatch(addQuestion(newQuestion));
+            navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/Questions/${newQuestionId}/edit`);
         }
     };
 
@@ -45,27 +59,40 @@ export default function QuestionEditorGate() {
         }
     };
 
+    // Handler to delete a question
+    const handleDeleteQuestion = (questionId: string) => {
+        dispatch(deleteQuestion(questionId));
+    };
+
     return (
         <div>
-            {/* Render list of questions */}
             {/* Render list of questions */}
             <ol className="list-group list-group-numbered">
                 {quizQuestions.length === 0 ? (
                     <div className="alert alert-warning">No questions available. Click 'New Question' to add.</div>
                 ) : (
-                    quizQuestions.map((question) => (
+                    quizQuestions.map((question: any) => (
                         <li key={question._id} className="list-group-item d-flex justify-content-between align-items-start">
                             <div className="ms-2 me-auto">
                                 <div className="fw-bold">{question.title || "Untitled Question"}</div>
                                 {question.type} Question | {question.points} Points
                             </div>
-                            <button
-                                type="button"
-                                className="btn btn-primary me-2"
-                                onClick={() => handleEditQuestion(question._id)}
-                            >
-                                Edit
-                            </button>
+                            <div className="d-flex">
+                                <button
+                                    type="button"
+                                    className="btn btn-primary me-2"
+                                    onClick={() => handleEditQuestion(question._id)}
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-danger"
+                                    onClick={() => handleDeleteQuestion(question._id)}
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </li>
                     ))
                 )}
@@ -97,13 +124,6 @@ export default function QuestionEditorGate() {
                     <label className="form-check-label" htmlFor="quiz-user-notify-check">
                         Notify Users this Quiz has changed
                     </label>
-                </div>
-
-                {/* Buttons for Cancel, Save, Save and Publish */}
-                <div className="d-flex">
-                    <button className="btn btn-secondary me-3">Cancel</button>
-                    <button className="btn btn-primary me-3">Save</button>
-                    <button className="btn btn-success">Save and Publish</button>
                 </div>
             </div>
             <hr />

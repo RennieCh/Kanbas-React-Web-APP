@@ -131,7 +131,7 @@ export default function Quizzes() {
                                                 </div>
 
                                                 {/* Quiz Action Buttons with availability status */}
-                                                <SingleQuizButtons isAvailable={isAvailable} />
+                                                <SingleQuizButtons isAvailable={isAvailable} quizId={quiz._id}/>
                                             </div>
                                         </li>
                                     );
