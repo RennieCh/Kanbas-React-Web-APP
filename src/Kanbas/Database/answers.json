@@ -5,7 +5,7 @@
         "quizID":"Q1",
         "courseID":"RS101",
         "score":29,
-        "answers":[""],
+        "answers":["2","True","test"],
         "attemptTaken":3,
         "startTime":"2024-09-19T00:00:00.000Z",
         "endTime":"2024-09-19T00:00:00.000Z"

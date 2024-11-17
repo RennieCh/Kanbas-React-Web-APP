@@ -63,15 +63,15 @@ export default function QuizResult() {
                             <span className="badge rounded-pill text-bg-success">Correct!</span>
                         </div>
                         <div className="form-check mt-3">
-                            <input className="form-check-input" type="radio" />
+                            <input className="form-check-input" type="radio" disabled/>
                             <label className="form-check-label ms-2">3</label>
                         </div>
                         <div className="form-check mt-3">
-                            <input className="form-check-input" type="radio" />
+                            <input className="form-check-input" type="radio" disabled/>
                             <label className="form-check-label ms-2">4</label>
                         </div>
                         <div className="form-check mt-3">
-                            <input className="form-check-input" type="radio" />
+                            <input className="form-check-input" type="radio" disabled/>
                             <label className="form-check-label ms-2">5</label>
                         </div>
                     </div>
@@ -93,7 +93,7 @@ export default function QuizResult() {
                         </div>
                         <div className="form-check d-flex align-items-center justify-content-between mt-3">
                             <div>
-                                <input className="form-check-input" type="radio" />
+                                <input className="form-check-input" type="radio" disabled/>
                                 <label className="form-check-label ms-2">False</label>
                             </div>
                             <span className="badge rounded-pill text-bg-success">Correct!</span>

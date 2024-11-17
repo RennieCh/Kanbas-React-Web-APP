@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { quizzes, questions } from "../../Database";
+import React, { useState } from "react";
 import { BsExclamationCircle, BsQuestionCircle } from "react-icons/bs";
 import { IoMdArrowDropleft, IoMdArrowDropright } from "react-icons/io";
 import { PiPencil } from "react-icons/pi";
 import { CgPentagonRight } from "react-icons/cg";
 import { useParams, useNavigate } from "react-router-dom";
-
+import { useSelector } from "react-redux";
 
 type Question = {
     _id: string;
@@ -19,23 +18,17 @@ type Question = {
 };
 
 export default function QuizPreview() {
-    const [quizData, setQuizData] = useState<any>(null);
-    const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const { quiz: quizId, cid } = useParams<{ quiz: string; cid: string }>();
     const navigate = useNavigate();
-    const { quiz, cid } = useParams<{ quiz: string; cid: string }>();
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-    // Fetch quiz and its questions on component load
-    useEffect(() => {
-        // Fetch the quiz by its ID
-        const selectedQuiz = quizzes.find(q => q._id === quiz);
-        if (selectedQuiz) {
-            setQuizData(selectedQuiz);
-            // Fetch questions related to the selected quiz
-            const relatedQuestions = questions.filter(q => q.quiz === quiz);
-            setQuizQuestions(relatedQuestions);
-        }
-    }, [quiz]);
+    // Get quizzes and questions from Redux state
+    const quizzes = useSelector((state: any) => state.quizzesReducer.quizzes);
+    const questions = useSelector((state: any) => state.quizzesReducer.questions);
+
+    // Find the specific quiz and its questions
+    const quizData = quizzes.find((q: any) => q._id === quizId);
+    const quizQuestions = questions.filter((q: Question) => q.quiz === quizId);
 
     // If no quiz is found, show a message
     if (!quizData || quizQuestions.length === 0) {
@@ -65,7 +58,15 @@ export default function QuizPreview() {
 
     // Navigate back to Quiz Result Screen
     const handleSubmit = () => {
-        navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz}/Result`);
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizId}/Result`);
+    };
+
+    // Navigate to the Question Editor
+    const handleEditQuiz = () => {
+        if (quizQuestions.length > 0) {
+            // Navigate to the question editor of the current question
+            navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizId}/Questions/${currentQuestion._id}/edit`);
+        }
     };
 
     return (
@@ -99,20 +100,34 @@ export default function QuizPreview() {
                         <p>{currentQuestion.question}</p>
                         <hr />
 
-                        {/* Answer Options */}
-                        {currentQuestion.choices.map((choice, index) => (
-                            <div key={index} className="form-check mt-3">
+                        {/* Answer Input */}
+                        {currentQuestion.type === "Fill in the blank" ? (
+                            // Render input box for "Fill in the Blank" questions
+                            <div className="form-group">
+                                <label htmlFor={`fillInBlank${currentQuestionIndex}`}>Your Answer:</label>
                                 <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name={`question${currentQuestionIndex}`}
-                                    id={`option${index}`}
+                                    type="text"
+                                    className="form-control mt-2"
+                                    id={`fillInBlank${currentQuestionIndex}`}
+                                    placeholder="Enter your answer here"
                                 />
-                                <label className="form-check-label" htmlFor={`option${index}`}>
-                                    {choice}
-                                </label>
                             </div>
-                        ))}
+                        ) : (
+                            // Render radio buttons for other question types (e.g., Multiple Choice)
+                            currentQuestion.choices.map((choice: string, index: number) => (
+                                <div key={index} className="form-check mt-3">
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name={`question${currentQuestionIndex}`}
+                                        id={`option${index}`}
+                                    />
+                                    <label className="form-check-label" htmlFor={`option${index}`}>
+                                        {choice}
+                                    </label>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
@@ -144,18 +159,19 @@ export default function QuizPreview() {
 
             {/* Questions List */}
             <div className="container mt-5">
-                <button className="btn btn-outline-secondary mb-4 d-flex align-items-center w-100 py-3">
+                <button className="btn btn-outline-secondary mb-4 d-flex align-items-center w-100 py-3"
+                onClick={handleEditQuiz}>
                     <PiPencil className="me-2" style={{ transform: "rotate(270deg)" }} />
                     Keep Editing This Quiz
                 </button>
 
                 <h3>Questions</h3>
                 <ol className="list-group list-group-flush">
-                    {quizQuestions.map((q, index) => (
+                    {quizQuestions.map((q: Question, index: number) => (
                         <li key={q._id} className="list-group-item d-flex align-items-center">
                             <span className="text-muted me-2"><BsQuestionCircle /></span>
                             <span className={index === currentQuestionIndex ? "text-danger" : ""}>
-                                <b>{index === currentQuestionIndex ? `Question ${index + 1}` : `Question ${index + 1}`}</b>
+                                <b>{`Question ${index + 1}`}</b>
                             </span>
                         </li>
                     ))}
