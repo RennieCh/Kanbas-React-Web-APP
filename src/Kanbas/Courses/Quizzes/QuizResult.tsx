@@ -40,6 +40,16 @@ export default function QuizResult() {
         });
     };
 
+    // Function to format date for display
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based, add 1
+        const day = String(date.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+    };
+
     // Navigate back to Quiz Result Screen
     const handleExit = () => {
         navigate(`/Kanbas/Courses/${cid}/Quizzes/`);
@@ -50,8 +60,8 @@ export default function QuizResult() {
             <h4>{quizData.title}</h4>
             <hr />
             <div>
-                <span><b>Due </b>{quizData.dueDate}</span> | <span><b>Points </b>{quizData.points}</span> | <span><b>Questions </b>{quizQuestions.length}</span> <br />
-                <span><b>Available </b>{quizData.availableFromDate} - {quizData.availableUntilDate}</span><br />
+                <span><b>Due </b>{formatDate(quizData.dueDate)}</span> | <span><b>Points </b>{quizData.points}</span> | <span><b>Questions </b>{quizQuestions.length}</span> <br />
+                <span><b>Available </b>{formatDate(quizData.availableFromDate)} - {formatDate(quizData.availableUntilDate)}</span><br />
                 <span><b>Time Limit </b>{quizData.timeLimit} Minutes</span>
             </div>
             <hr />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 import { IoSearchOutline } from "react-icons/io5";
@@ -15,6 +15,7 @@ export default function QuestionEditorGate() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { cid, aid } = useParams<{ cid: string; aid: string }>(); // Get course ID and quiz ID from URL
+    const [newQuestionId, setNewQuestionId] = useState<string | null>(null);
 
     // Get quizzes and questions from the Redux store
     const questions = useSelector((state) => (state as any).quizzesReducer.questions);
@@ -22,6 +23,18 @@ export default function QuestionEditorGate() {
 
     // Filter questions based on the quiz ID
     const quizQuestions = questions.filter((question: any) => question.quiz === aid);
+
+    // Use Effect to monitor the addition of a new question
+    useEffect(() => {
+        if (newQuestionId) {
+            const questionExists = questions.some((question: any) => question._id === newQuestionId);
+            if (questionExists) {
+                // Navigate to the new question editor page once it exists in the state
+                navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/Questions/${newQuestionId}/edit`);
+                setNewQuestionId(null);
+            }
+        }
+    }, [questions, newQuestionId, navigate, cid, aid]);
 
     // Handle the case where the quiz is not found
     if (!quiz) {
@@ -36,7 +49,7 @@ export default function QuestionEditorGate() {
     // Handler to navigate to the QuestionEditor for adding a new question
     const handleAddQuestion = () => {
         if (cid && aid) {
-            const newQuestionId = new Date().getTime().toString(); 
+            const newQuestionId = new Date().getTime().toString();
             const newQuestion = {
                 _id: newQuestionId,
                 quiz: aid,
@@ -48,8 +61,7 @@ export default function QuestionEditorGate() {
                 choices: [""],
             };
             dispatch(addQuestion(newQuestion));
-            navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/Questions/${newQuestionId}/edit`);
-        }
+            setNewQuestionId(newQuestionId);        }
     };
 
     // Handler to edit a question

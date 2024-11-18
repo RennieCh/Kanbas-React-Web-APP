@@ -20,7 +20,7 @@ export default function TrueFalseEditor({ questionId }: TrueFalseEditorProps) {
     );
 
     useEffect(() => {
-        if (question && question.type === "True/False" && question.choices.length !== 2) {
+        if (question && question.type === "True/false" && question.choices.length !== 2) {
             // Update the choices to ["True", "False"] if not already set
             dispatch(updateQuestion({ ...question, choices: ["True", "False"] }));
         }

@@ -78,12 +78,12 @@ export default function QuestionEditor() {
                     id="quiz-question-type"
                     className="form-select"
                     style={{ width: "200px" }}
-                    value={questionType}
+                    value={question.type}
                     onChange={handleQuestionTypeChange}
                 >
-                    <option>Multiple Choice</option>
-                    <option>True/False</option>
-                    <option>Fill in the Blank</option>
+                    <option value="Multiple choice">Multiple choice</option>
+                    <option value="True/false">True/false</option>
+                    <option value="Fill in the blank">Fill in the blank</option>
                 </select>
 
                 {/* Points Input Field */}

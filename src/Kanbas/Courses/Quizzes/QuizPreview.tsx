@@ -127,11 +127,13 @@ export default function QuizPreview() {
             {/* Quiz Title */}
             <h4>{quizData.title}</h4>
 
-            {/* Alert Message */}
-            <div className="alert alert-danger" role="alert">
-                <BsExclamationCircle className="text-danger me-2" />
-                <span>This is the preview of the published version of the quiz.</span>
-            </div>
+            {/* Alert Message for Faculty User */}
+            {currentUser?.role === "FACULTY" && (
+                <div className="alert alert-danger" role="alert">
+                    <BsExclamationCircle className="text-danger me-2" />
+                    <span>This is the preview of the published version of the quiz.</span>
+                </div>
+            )}
 
             {/* Quiz Instructions and Info */}
             <div>
@@ -216,11 +218,13 @@ export default function QuizPreview() {
 
             {/* Questions List */}
             <div className="container mt-5">
-                <button className="btn btn-outline-secondary mb-4 d-flex align-items-center w-100 py-3"
-                    onClick={handleEditQuiz}>
-                    <PiPencil className="me-2" style={{ transform: "rotate(270deg)" }} />
-                    Keep Editing This Quiz
-                </button>
+                {currentUser?.role === "FACULTY" && (
+                    <button className="btn btn-outline-secondary mb-4 d-flex align-items-center w-100 py-3"
+                        onClick={handleEditQuiz}>
+                        <PiPencil className="me-2" style={{ transform: "rotate(270deg)" }} />
+                        Keep Editing This Quiz
+                    </button>
+                )}
 
                 <h3>Questions</h3>
                 <ol className="list-group list-group-flush">

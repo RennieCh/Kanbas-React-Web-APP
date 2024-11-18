@@ -55,7 +55,7 @@ export default function QuizzesEditor() {
     const [dueDate, setDueDate] = useState<string>(formatDateTimeForInput(quiz.dueDate));
     const [availableFromDate, setAvailableFromDate] = useState<string>(formatDateTimeForInput(quiz.availableFromDate));
     const [availableUntilDate, setAvailableUntilDate] = useState<string>(formatDateTimeForInput(quiz.availableUntilDate));
-    
+
     const [activeTab, setActiveTab] = useState<string>("details");
 
 
@@ -115,6 +115,9 @@ export default function QuizzesEditor() {
         if (quiz) {
             dispatch(updateQuiz({ ...quiz, published: updatedStatus }));
         }
+
+        // Navigate to the Quiz Details screen
+        navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}`);
     };
 
     // Save the quiz to Redux store
@@ -141,8 +144,34 @@ export default function QuizzesEditor() {
 
         // Dispatch the updateQuiz action to save changes to the Redux store
         dispatch(updateQuiz(updatedQuiz));
+    };
 
-        // Navigate to the Quiz Details screen
+    // Save the quiz and set publish status to true
+    const handleSaveAndPublish = () => {
+        const updatedQuiz = {
+            ...quiz,
+            published: true,
+            title: quizTitle,
+            description: quizDescription,
+            type: quizType,
+            assignmentGroup: assignmentGroup,
+            shuffleAnswer: shuffleAnswer,
+            timeLimit: timeLimit,
+            allowMultiAttempts: allowMultiAttempts,
+            showCorrectAnswers: quizShowCorrectAnswers,
+            oneQuestionaTime: quizOneQuestionAtATime,
+            webCam: quizWebCam,
+            lockQuestionsAfterAnswering: quizLockQuestionsAfterAnswering,
+            accessCode: quizAccessCode,
+            dueDate: dueDate,
+            availableFromDate: availableFromDate,
+            availableUntilDate: availableUntilDate,
+        };
+
+        // Dispatch the updateQuiz action to save changes and mark as published in the Redux store
+        dispatch(updateQuiz(updatedQuiz));
+
+        // Navigate back to quiz details after saving
         navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}`);
     };
 
@@ -364,10 +393,7 @@ export default function QuizzesEditor() {
                     <div className="d-flex justify-content-center mt-3">
                         <button type="button" className="btn btn-secondary me-3" onClick={handleCancel}>Cancel</button>
                         <button type="button" className="btn btn-secondary me-3"
-                            onClick={() => {
-                                togglePublishStatus();
-                                handleSave();
-                            }}>Save & Publish</button>
+                            onClick={handleSaveAndPublish}>Save & Publish</button>
                         <button type="button" className="btn btn-danger me-3" onClick={handleSave}>Save</button>
                     </div>
                     <hr />

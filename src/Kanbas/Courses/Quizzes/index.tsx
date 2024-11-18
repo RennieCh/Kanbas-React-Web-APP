@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import QuizzesControls from "./QuizzesControls";
 import { VscTriangleDown } from "react-icons/vsc";
 import { IoRocketOutline } from "react-icons/io5";
@@ -12,13 +12,27 @@ export default function Quizzes() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const currentDate = new Date();
+    const [newQuizId, setNewQuizId] = useState<string | null>(null);
 
     // Get quizzes and questions from the store using useSelector with inline type assertion
     const quizzes = useSelector((state) => (state as any).quizzesReducer.quizzes);
     const questions = useSelector((state) => (state as any).quizzesReducer.questions);
+    const currentUser = useSelector((state) => (state as any).accountReducer.currentUser);
 
     // Filter quizzes by the current course ID
     const courseQuizzes = quizzes.filter((quiz: any) => quiz.course === cid);
+
+    // Use Effect to monitor the addition of a new quiz
+    useEffect(() => {
+        if (newQuizId) {
+            const quizExists = quizzes.some((quiz: any) => quiz._id === newQuizId);
+            if (quizExists) {
+                // Navigate to the new quiz detail page once it exists in the state
+                navigate(`/Kanbas/Courses/${cid}/Quizzes/${newQuizId}`);
+                setNewQuizId(null);
+            }
+        }
+    }, [quizzes, newQuizId, navigate, cid]);
 
     // Function to handle adding a new quiz
     const addNewQuiz = () => {
@@ -76,7 +90,9 @@ export default function Quizzes() {
     return (
         <div className="container-fluid">
             <div id="wd-quizzes">
-                <QuizzesControls addNewQuiz={addNewQuiz} />
+                {currentUser?.role === "FACULTY" && (
+                    <QuizzesControls addNewQuiz={addNewQuiz} />
+                )}
                 <br />
                 <hr />
                 <br />
@@ -131,7 +147,9 @@ export default function Quizzes() {
                                                 </div>
 
                                                 {/* Quiz Action Buttons with availability status */}
-                                                <SingleQuizButtons isAvailable={isAvailable} quizId={quiz._id}/>
+                                                {currentUser?.role === "FACULTY" && (
+                                                    <SingleQuizButtons isAvailable={isAvailable} quizId={quiz._id} />
+                                                )}
                                             </div>
                                         </li>
                                     );
