@@ -1,9 +1,66 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { quizzes as quizzesDB, questions as questionsDB } from "../../Database";
 
-const initialState = {
+// Define the Answer type
+interface Answer {
+  _id: string;
+  userID: string;
+  quizID: string;
+  courseID: string;
+  score: number;
+  answers: string[];
+  attemptTaken: number;
+  startTime: string;
+  endTime: string | null;
+}
+
+interface Question {
+  _id: string;
+  quiz: string;
+  title: string;
+  type: string;
+  points: number;
+  question: string;
+  correctAnswer: string;
+  choices: string[];
+};
+
+interface Quiz {
+  _id: string,
+  course: string,
+  title: string,
+  type: string,
+  points: number,
+  assignmentGroup: string,
+  cloneable: boolean,
+  published: boolean,
+  description: string,
+  shuffleAnswer: boolean,
+  timeLimit: string,
+  allowMultiAttempts: boolean,
+  numberOfAttempts: number,
+  showCorrectAnswers: string,
+  oneQuestionaTime: boolean,
+  accessCode: string,
+  webCam: boolean,
+  lockQuestionsAfterAnswering: boolean,
+  availableFromDate: string,
+  dueDate: string,
+  availableUntilDate: string
+}
+
+// Define the initial state type
+interface InitialState {
+  quizzes: Quiz[];
+  questions: Question[];
+  answers: Answer[];
+}
+
+// Initialize the initial state with explicit types
+const initialState: InitialState = {
   quizzes: quizzesDB,
   questions: questionsDB,
+  answers: [],
 };
 
 const quizzesSlice = createSlice({
@@ -63,14 +120,71 @@ const quizzesSlice = createSlice({
         choices: question.choices || [""],
       };
       state.questions = [...state.questions, newQuestion];
+
+      // Update the quiz points
+      const quizId = question.quiz;
+      const updatedQuestions = state.questions.filter((q) => q.quiz === quizId);
+      const updatedQuizPoints = updatedQuestions.reduce((sum, q) => sum + q.points, 0);
+
+      state.quizzes = state.quizzes.map((quiz) =>
+        quiz._id === quizId ? { ...quiz, points: updatedQuizPoints } : quiz
+      );
     },
     // Delete a question by ID
     deleteQuestion: (state, { payload: questionId }) => {
+      const questionToDelete = state.questions.find((q) => q._id === questionId);
+      if (!questionToDelete) return;
+
+      const quizId = questionToDelete.quiz;
       state.questions = state.questions.filter((q) => q._id !== questionId);
+
+      // Update the quiz points after deleting the question
+      const updatedQuestions = state.questions.filter((q) => q.quiz === quizId);
+      const updatedQuizPoints = updatedQuestions.reduce((sum, q) => sum + q.points, 0);
+
+      state.quizzes = state.quizzes.map((quiz) =>
+        quiz._id === quizId ? { ...quiz, points: updatedQuizPoints } : quiz
+      );
     },
     // Update an existing question
     updateQuestion: (state, { payload: question }) => {
       state.questions = state.questions.map((q) => (q._id === question._id ? question : q));
+
+      // Update the quiz points after updating the question
+      const quizId = question.quiz;
+      const updatedQuestions = state.questions.filter((q) => q.quiz === quizId);
+      const updatedQuizPoints = updatedQuestions.reduce((sum, q) => sum + q.points, 0);
+
+      state.quizzes = state.quizzes.map((quiz) =>
+        quiz._id === quizId ? { ...quiz, points: updatedQuizPoints } : quiz
+      );
+    },
+    // Set a new answer (replace all answers with the new list)
+    setAnswer: (state, { payload: answers }) => {
+      state.answers = answers;
+    },
+    // Add a new answer
+    addAnswer: (state, { payload: answer }) => {
+      const newAnswer = {
+        _id: new Date().getTime().toString(),
+        userID: answer.userID,
+        quizID: answer.quizID,
+        courseID: answer.courseID,
+        score: answer.score || 0,
+        answers: answer.answers || [],
+        attemptTaken: answer.attemptTaken || 1,
+        startTime: answer.startTime || new Date().toISOString(),
+        endTime: answer.endTime || null,
+      };
+      state.answers = [...state.answers, newAnswer];
+    },
+    // Update an existing answer
+    updateAnswer: (state, { payload: answer }) => {
+      state.answers = state.answers.map((a) => (a._id === answer._id ? answer : a));
+    },
+    // Delete an answer by ID
+    deleteAnswer: (state, { payload: answerId }) => {
+      state.answers = state.answers.filter((a) => a._id !== answerId);
     },
   },
 });
@@ -83,5 +197,9 @@ export const {
   addQuestion,
   deleteQuestion,
   updateQuestion,
+  setAnswer,
+  addAnswer,
+  updateAnswer,
+  deleteAnswer,
 } = quizzesSlice.actions;
 export default quizzesSlice.reducer;

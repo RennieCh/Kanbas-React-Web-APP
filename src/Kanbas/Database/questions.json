@@ -32,13 +32,27 @@
         "quiz": "Q1",
         "title": "Easy Question 3",
         "type": "Fill in the blank",
-        "points": 13,
+        "points": 12,
         "question": "what is 1 + 1 ? ",
         "correctAnswer": "",
         "choices": [
             "2",
             "two",
             "2^1"
+        ]
+    },
+    {
+        "_id": "QU11",
+        "quiz": "Q1",
+        "title": "Easy Question 4",
+        "type": "Fill in the blank",
+        "points": 1,
+        "question": "what is 2 + 2 ? ",
+        "correctAnswer": "",
+        "choices": [
+            "4",
+            "Four",
+            "2^2"
         ]
     },
     {
