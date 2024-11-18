@@ -4,7 +4,8 @@ import { IoMdArrowDropleft, IoMdArrowDropright } from "react-icons/io";
 import { PiPencil } from "react-icons/pi";
 import { CgPentagonRight } from "react-icons/cg";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { addOrUpdateAnswer } from "./reducer";
 
 type Question = {
     _id: string;
@@ -20,11 +21,15 @@ type Question = {
 export default function QuizPreview() {
     const { quiz: quizId, cid } = useParams<{ quiz: string; cid: string }>();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [userAnswers, setUserAnswers] = useState<string[]>([]);
+    const startTime = new Date().toISOString();
 
     // Get quizzes and questions from Redux state
     const quizzes = useSelector((state: any) => state.quizzesReducer.quizzes);
     const questions = useSelector((state: any) => state.quizzesReducer.questions);
+    const currentUser = useSelector((state: any) => state.accountReducer.currentUser);
 
     // Find the specific quiz and its questions
     const quizData = quizzes.find((q: any) => q._id === quizId);
@@ -56,8 +61,33 @@ export default function QuizPreview() {
         return now.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "numeric", hour12: true });
     };
 
-    // Navigate back to Quiz Result Screen
+    // Display the start time
+    const displayStartTime = () => {
+        return new Date(startTime).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+    };
+
+    // Handle submit quiz
     const handleSubmit = () => {
+        const endTime = new Date().toISOString();
+        const finalScore = calculateScore();
+
+        const answerPayload = {
+            userID: currentUser._id,
+            quizID: quizId,
+            courseID: cid,
+            score: finalScore,
+            answers: userAnswers,
+            startTime,
+            endTime,
+        };
+
+        dispatch(addOrUpdateAnswer(answerPayload));
         navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizId}/Result`);
     };
 
@@ -69,6 +99,29 @@ export default function QuizPreview() {
         }
     };
 
+    // Handler for selecting an answer
+    const handleSelectAnswer = (answer: string) => {
+        const updatedAnswers = [...userAnswers];
+        updatedAnswers[currentQuestionIndex] = answer;
+        setUserAnswers(updatedAnswers);
+    };
+
+    // Calculate score based on user answers
+    const calculateScore = () => {
+        let calculatedScore = 0;
+        quizQuestions.forEach((question: Question, index: number) => {
+            if (question.type === "Multiple choice" || question.type === "True/false") {
+                if (userAnswers[index] === question.correctAnswer) {
+                    calculatedScore += question.points;
+                }
+            } else if (question.type === "Fill in the blank") {
+                if (question.choices.includes(userAnswers[index])) {
+                    calculatedScore += question.points;
+                }
+            }
+        });
+        return calculatedScore;
+    };
     return (
         <div className="container mt-4">
             {/* Quiz Title */}
@@ -82,7 +135,7 @@ export default function QuizPreview() {
 
             {/* Quiz Instructions and Info */}
             <div>
-                <p>Started: {getCurrentDateTime()}</p>
+                <p>Started: {displayStartTime()}</p>
                 <h4>Quiz Instructions</h4>
             </div>
             <hr />
@@ -110,6 +163,8 @@ export default function QuizPreview() {
                                     className="form-control mt-2"
                                     id={`fillInBlank${currentQuestionIndex}`}
                                     placeholder="Enter your answer here"
+                                    value={userAnswers[currentQuestionIndex] || ""}
+                                    onChange={(e) => handleSelectAnswer(e.target.value)}
                                 />
                             </div>
                         ) : (
@@ -121,6 +176,8 @@ export default function QuizPreview() {
                                         type="radio"
                                         name={`question${currentQuestionIndex}`}
                                         id={`option${index}`}
+                                        checked={userAnswers[currentQuestionIndex] === choice}
+                                        onChange={() => handleSelectAnswer(choice)}
                                     />
                                     <label className="form-check-label" htmlFor={`option${index}`}>
                                         {choice}
@@ -160,7 +217,7 @@ export default function QuizPreview() {
             {/* Questions List */}
             <div className="container mt-5">
                 <button className="btn btn-outline-secondary mb-4 d-flex align-items-center w-100 py-3"
-                onClick={handleEditQuiz}>
+                    onClick={handleEditQuiz}>
                     <PiPencil className="me-2" style={{ transform: "rotate(270deg)" }} />
                     Keep Editing This Quiz
                 </button>

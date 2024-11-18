@@ -186,6 +186,38 @@ const quizzesSlice = createSlice({
     deleteAnswer: (state, { payload: answerId }) => {
       state.answers = state.answers.filter((a) => a._id !== answerId);
     },
+    // Add a new answer or update an existing answer for a user retaking a quiz
+    addOrUpdateAnswer: (state, { payload: answer }) => {
+      const existingAnswerIndex = state.answers.findIndex(
+        (a) => a.quizID === answer.quizID && a.userID === answer.userID
+      );
+
+      if (existingAnswerIndex !== -1) {
+        // Update existing answer
+        state.answers[existingAnswerIndex] = {
+          ...state.answers[existingAnswerIndex],
+          attemptTaken: state.answers[existingAnswerIndex].attemptTaken + 1,
+          startTime: answer.startTime,
+          endTime: answer.endTime,
+          score: answer.score,
+          answers: answer.answers,
+        };
+      } else {
+        // Add new answer
+        const newAnswer: Answer = {
+          _id: new Date().getTime().toString(),
+          userID: answer.userID,
+          quizID: answer.quizID,
+          courseID: answer.courseID,
+          score: answer.score || 0,
+          answers: answer.answers || [],
+          attemptTaken: 1,
+          startTime: answer.startTime || new Date().toISOString(),
+          endTime: answer.endTime || null,
+        };
+        state.answers.push(newAnswer);
+      }
+    },
   },
 });
 
@@ -201,5 +233,6 @@ export const {
   addAnswer,
   updateAnswer,
   deleteAnswer,
+  addOrUpdateAnswer,
 } = quizzesSlice.actions;
 export default quizzesSlice.reducer;
