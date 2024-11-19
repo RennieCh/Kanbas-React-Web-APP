@@ -97,7 +97,6 @@ export default function Dashboard({
     // Stare to stpre all my enrolled course fetched from the server
     const [myEnrolledCourses, setMyEnrolledCourses] = useState<any[]>([]);
 
-
     // Fetch all courses when showAllCourses is toggled on
     useEffect(() => {
         const fetchAll = async () => {
