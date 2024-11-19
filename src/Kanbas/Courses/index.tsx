@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import CoursesNavigation from "./Navigation";
 import { Navigate, Route, Routes, useParams, useLocation } from "react-router";
 import Modules from "./Modules";
@@ -13,11 +14,19 @@ import QuestionEditor from "./Quizzes/QuestionEditor";
 import QuizPreview from "./Quizzes/QuizPreview";
 import QuizResult from "./Quizzes/QuizResult";
 
-
 export default function Courses({courses} : {courses:any[];}) {
     const { cid } = useParams(); // Get the course ID from the URL
-    const course = courses.find((course) => course._id === cid); // Find the course with the matching ID
     const { pathname } = useLocation();
+
+    const [currentCourse, setCurrentCourse] = useState<any>(null);
+
+    // Ensure `courses` is updated immediately after a new course is added
+    useEffect(() => {
+        if (cid) {
+            const course = courses.find((course) => course._id === cid);
+            setCurrentCourse(course || null);
+        }
+    }, [courses, cid]);
 
     // Helper function to format the current section name 
     const formatSection = () => {
@@ -29,7 +38,7 @@ export default function Courses({courses} : {courses:any[];}) {
         <div id="wd-courses" className="container-fluid">
             <h2 className="text-danger">
                 <FaAlignJustify className="position-relative me-4 fs-4 mb-1" style={{ bottom: "1px" }} />
-                {course && `${course.name} > ${formatSection()}`}
+                {currentCourse && `${currentCourse.name} > ${formatSection()}`}
             </h2>
             <hr />
             <div className="row">

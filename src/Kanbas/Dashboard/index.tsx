@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector} from "react-redux";
 import { useState, useEffect } from "react";
-import { enrollCourse } from "./reducer";
 import { fetchAllCourses, fetchAllEnrollments, enrollUser, unenrollUser } from "../Courses/client";
 import { findMyCourses } from "../Account/client";
 
@@ -21,19 +20,53 @@ export default function Dashboard({
     updateCourse: () => void;
 }) {
     const { currentUser } = useSelector((state: any) => state.accountReducer);
-    const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const handleAddCourse = async () => {
         const newCourseId = new Date().getTime().toString();
-        setCourse({ ...course, _id: newCourseId });
-        await addNewCourse();
-        await refreshEnrolledCourses();
+    
+        // Prepare the new course
+        const newCourse = {
+            ...course,
+            _id: newCourseId,
+        };
+    
+        try {
+            // Step 1: Add the course to the server
+            await addNewCourse();
+    
+            // Step 2: Enroll the Faculty user on the server
+            await enrollUser(currentUser._id, newCourseId);
+    
+            // Step 3: Update local state immediately to reflect the new course
+            setAllCourses((prevCourses) => [...prevCourses, newCourse]);
+            setMyEnrolledCourses((prevCourses) => [...prevCourses, newCourse]);
+            setEnrollments((prevEnrollments) => [
+                ...prevEnrollments,
+                { user: currentUser._id, course: newCourseId },
+            ]);
 
-        if (currentUser && currentUser._id) {
-            dispatch(enrollCourse({ user: currentUser._id, course: newCourseId }));
+            // Trigger a re-fetch of all courses
+            setCourseAdded(!courseAdded);
+
+        } catch (error) {
+            console.error("Error adding or enrolling in course:", error);
+    
+            // Revert local state if the operation fails
+            setAllCourses((prevCourses) =>
+                prevCourses.filter((course) => course._id !== newCourseId)
+            );
+            setMyEnrolledCourses((prevCourses) =>
+                prevCourses.filter((course) => course._id !== newCourseId)
+            );
+            setEnrollments((prevEnrollments) =>
+                prevEnrollments.filter(
+                    (enrollment) => enrollment.course !== newCourseId
+                )
+            );
         }
-
+    
+        // Reset the course form
         setCourse({
             _id: "0",
             name: "New Course",
@@ -41,10 +74,10 @@ export default function Dashboard({
             startDate: "2023-09-10",
             endDate: "2023-12-15",
             image: "/images/reactjs.jpg",
-            description: "New Description"
+            description: "New Description",
         });
     };
-
+    
     const handleUpdateCourse = async () => {
         await updateCourse();
         await refreshEnrolledCourses();
@@ -94,11 +127,12 @@ export default function Dashboard({
     const [showAllCourses, setShowAllCourses] = useState(false);
     // State to store all enrollment fetched from the server
     const [enrollments, setEnrollments] = useState<any[]>([]);
-    // Stare to stpre all my enrolled course fetched from the server
+    // Stare to store all my enrolled course fetched from the server
     const [myEnrolledCourses, setMyEnrolledCourses] = useState<any[]>([]);
+    // Tracks if a course has been added
+    const [courseAdded, setCourseAdded] = useState(false); 
 
-
-    // Fetch all courses when showAllCourses is toggled on
+    // Fetch all courses when when `courseAdded` or `showAllCourses` changes
     useEffect(() => {
         const fetchAll = async () => {
             if (showAllCourses) {
@@ -111,7 +145,7 @@ export default function Dashboard({
             }
         };
         fetchAll();
-    }, [showAllCourses]);
+    }, [courseAdded, showAllCourses]);
 
     // Fetch all enrollments and the user's enrolled courses on component mount
     useEffect(() => {
@@ -170,18 +204,37 @@ export default function Dashboard({
         }
     };
 
-    // Protect route to a course, only allow access if enrolled
-    const handleGoToCourse = (courseId: string) => {
+    const handleGoToCourse = async (courseId: string) => {
         const isEnrolled = enrollments.some(
             (enrollment) => enrollment.user === currentUser._id && enrollment.course === courseId
         );
+    
         if (isEnrolled) {
+            // Navigate immediately
             navigate(`/Kanbas/Courses/${courseId}/Home`);
         } else {
-            alert("You are not enrolled in this course!");
+            try {
+                // Refresh courses and enrollments
+                await refreshEnrolledCourses();
+    
+                // Recheck enrollment after refreshing
+                const refreshedIsEnrolled = enrollments.some(
+                    (enrollment) => enrollment.user === currentUser._id && enrollment.course === courseId
+                );
+    
+                if (refreshedIsEnrolled) {
+                    navigate(`/Kanbas/Courses/${courseId}/Home`);
+                } else {
+                    alert("You are not enrolled in this course!");
+                }
+            } catch (error) {
+                console.error("Failed to refresh enrollments or navigate:", error);
+                alert("You are not enrolled in this course!");
+            }
         }
     };
-
+       
+    
     // Function to generate the image path based on course _id
     const getImagePath = (courseId: string): string => {
         return courseId.startsWith("RS") ? `/images/${courseId.toLowerCase()}.jpg` : "/images/reactjs.jpg";
