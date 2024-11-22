@@ -31,8 +31,16 @@ export default function Profile() {
 
   // A5 Added: updateProfile function to handle profile updates
   const updateProfile = async () => {
-    const updatedProfile = await client.updateUser(profile);
-    dispatch(setCurrentUser(updatedProfile));
+    try {
+      const updatedProfile = await client.updateUser(profile);
+
+      // Update Redux store and local state with the updated profile
+      dispatch(setCurrentUser(updatedProfile));
+      setProfile(updatedProfile); // Synchronize local state with updated profile
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert("Failed to update profile. Please try again.");
+    }
   };
 
   return (

@@ -78,6 +78,7 @@ export default function Kanbas() {
                                     addNewCourse={addNewCourse}
                                     deleteCourse={deleteCourse}
                                     updateCourse={updateCourse}
+                                    fetchCourses={fetchCourses}
                                 />
                             </ProtectedRoute>
                         } />

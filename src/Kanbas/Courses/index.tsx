@@ -1,32 +1,63 @@
+
 import React, { useState, useEffect } from "react";
 import CoursesNavigation from "./Navigation";
 import { Navigate, Route, Routes, useParams, useLocation } from "react-router";
 import Modules from "./Modules";
 import Home from "./Home";
-import Quizzes from "./Quizzes";
+import PeopleTable from "./People/Table";
+import { FaAlignJustify } from "react-icons/fa6";
 import Assignments from "./Assignments";
+import Quizzes from "./Quizzes";
 import AssignmentEditor from "./Assignments/Editor";
 import QuizzesDetails from "./Quizzes/Details";
 import QuizzesEditor from "./Quizzes/Editor";
-import PeopleTable from "./People/Table";
-import { FaAlignJustify } from "react-icons/fa6";
 import QuestionEditor from "./Quizzes/QuestionEditor";
 import QuizPreview from "./Quizzes/QuizPreview";
 import QuizResult from "./Quizzes/QuizResult";
+import { fetchAllCourses } from "../Courses/client";
+
+interface Course {
+    _id: string;
+    name: string;
+    number: string,
+    startDate: string,
+    endDate: string,
+    department: string,
+    credits: number,
+    description: string
+}
 
 export default function Courses({courses} : {courses:any[];}) {
     const { cid } = useParams(); // Get the course ID from the URL
     const { pathname } = useLocation();
 
     const [currentCourse, setCurrentCourse] = useState<any>(null);
+    const [isFetching, setIsFetching] = useState(false);
 
-    // Ensure `courses` is updated immediately after a new course is added
-    useEffect(() => {
-        if (cid) {
-            const course = courses.find((course) => course._id === cid);
-            setCurrentCourse(course || null);
-        }
-    }, [courses, cid]);
+        // Ensure `currentCourse` is updated dynamically
+        useEffect(() => {
+            const loadCourse = async () => {
+                if (cid) {
+                    let course = courses.find((course) => course._id === cid);
+    
+                    // If the course is not found, fetch all courses and retry
+                    if (!course) {
+                        setIsFetching(true);
+                        try {
+                            const allCourses = await fetchAllCourses();
+                            course = allCourses.find((c :Course) => c._id === cid) || null;
+                        } catch (error) {
+                            console.error("Failed to fetch courses:", error);
+                        }
+                        setIsFetching(false);
+                    }
+    
+                    setCurrentCourse(course || null);
+                }
+            };
+    
+            loadCourse();
+        }, [cid, courses]);
 
     // Helper function to format the current section name 
     const formatSection = () => {
@@ -38,7 +69,11 @@ export default function Courses({courses} : {courses:any[];}) {
         <div id="wd-courses" className="container-fluid">
             <h2 className="text-danger">
                 <FaAlignJustify className="position-relative me-4 fs-4 mb-1" style={{ bottom: "1px" }} />
-                {currentCourse && `${currentCourse.name} > ${formatSection()}`}
+                {isFetching
+                    ? "Loading..."
+                    : currentCourse
+                    ? `${currentCourse.name} > ${formatSection()}`
+                    : "Course Not Found"}
             </h2>
             <hr />
             <div className="row">

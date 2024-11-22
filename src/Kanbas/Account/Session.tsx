@@ -8,7 +8,9 @@ export default function Session({ children }: { children: any }) {
     const dispatch = useDispatch();
     const fetchProfile = useCallback(async () => {
         try {
+            console.log("Fetching profile...");
             const currentUser = await client.profile();
+            console.log("Fetched currentUser:", currentUser);
             if (currentUser) dispatch(setCurrentUser(currentUser));
         } catch (err) {
             console.error("Error fetching profile:", err);

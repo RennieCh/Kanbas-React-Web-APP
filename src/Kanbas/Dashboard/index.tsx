@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useSelector} from "react-redux";
+import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { fetchAllCourses, fetchAllEnrollments, enrollUser, unenrollUser } from "../Courses/client";
 import { findMyCourses } from "../Account/client";
@@ -10,7 +10,8 @@ export default function Dashboard({
     setCourse,
     addNewCourse,
     deleteCourse,
-    updateCourse
+    updateCourse,
+    fetchCourses,
 }: {
     courses: any[];
     course: any;
@@ -18,26 +19,27 @@ export default function Dashboard({
     addNewCourse: () => void;
     deleteCourse: (courseId: string) => void;
     updateCourse: () => void;
+    fetchCourses: () => Promise<void>;
 }) {
     const { currentUser } = useSelector((state: any) => state.accountReducer);
     const navigate = useNavigate();
 
     const handleAddCourse = async () => {
         const newCourseId = new Date().getTime().toString();
-    
+
         // Prepare the new course
         const newCourse = {
             ...course,
             _id: newCourseId,
         };
-    
+
         try {
             // Step 1: Add the course to the server
             await addNewCourse();
-    
+
             // Step 2: Enroll the Faculty user on the server
             await enrollUser(currentUser._id, newCourseId);
-    
+
             // Step 3: Update local state immediately to reflect the new course
             setAllCourses((prevCourses) => [...prevCourses, newCourse]);
             setMyEnrolledCourses((prevCourses) => [...prevCourses, newCourse]);
@@ -51,7 +53,7 @@ export default function Dashboard({
 
         } catch (error) {
             console.error("Error adding or enrolling in course:", error);
-    
+
             // Revert local state if the operation fails
             setAllCourses((prevCourses) =>
                 prevCourses.filter((course) => course._id !== newCourseId)
@@ -65,7 +67,7 @@ export default function Dashboard({
                 )
             );
         }
-    
+
         // Reset the course form
         setCourse({
             _id: "0",
@@ -77,7 +79,7 @@ export default function Dashboard({
             description: "New Description",
         });
     };
-    
+
     const handleUpdateCourse = async () => {
         await updateCourse();
         await refreshEnrolledCourses();
@@ -130,7 +132,7 @@ export default function Dashboard({
     // Stare to store all my enrolled course fetched from the server
     const [myEnrolledCourses, setMyEnrolledCourses] = useState<any[]>([]);
     // Tracks if a course has been added
-    const [courseAdded, setCourseAdded] = useState(false); 
+    const [courseAdded, setCourseAdded] = useState(false);
 
     // Fetch all courses when when `courseAdded` or `showAllCourses` changes
     useEffect(() => {
@@ -208,7 +210,7 @@ export default function Dashboard({
         const isEnrolled = enrollments.some(
             (enrollment) => enrollment.user === currentUser._id && enrollment.course === courseId
         );
-    
+
         if (isEnrolled) {
             // Navigate immediately
             navigate(`/Kanbas/Courses/${courseId}/Home`);
@@ -216,12 +218,12 @@ export default function Dashboard({
             try {
                 // Refresh courses and enrollments
                 await refreshEnrolledCourses();
-    
+
                 // Recheck enrollment after refreshing
                 const refreshedIsEnrolled = enrollments.some(
                     (enrollment) => enrollment.user === currentUser._id && enrollment.course === courseId
                 );
-    
+
                 if (refreshedIsEnrolled) {
                     navigate(`/Kanbas/Courses/${courseId}/Home`);
                 } else {
@@ -233,8 +235,8 @@ export default function Dashboard({
             }
         }
     };
-       
-    
+
+
     // Function to generate the image path based on course _id
     const getImagePath = (courseId: string): string => {
         return courseId.startsWith("RS") ? `/images/${courseId.toLowerCase()}.jpg` : "/images/reactjs.jpg";

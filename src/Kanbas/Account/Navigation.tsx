@@ -4,7 +4,10 @@ import { useSelector } from "react-redux";
 export default function AccountNavigation() {
     const { pathname } = useLocation(); // Get current pathname from the URL
     const { currentUser } = useSelector((state: any) => state.accountReducer);
-    const links = currentUser ? ["Profile"] : ["Signin", "Signup"];
+        // Determine links based on the user's authentication and role
+        const links = currentUser
+        ? ["Profile", ...(currentUser.role === "ADMIN" ? ["Users"] : [])]
+        : ["Signin", "Signup"];
 
     // Helper function to check if a link is active
     const isActiveLink = (link: string): boolean => {
