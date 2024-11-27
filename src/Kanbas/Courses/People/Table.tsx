@@ -1,9 +1,35 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import PeopleDetails from "./Details";
-import { Link } from "react-router-dom";
+import { Link} from "react-router-dom";
+import { findUsersForCourse } from "../../Courses/client";
 
-export default function PeopleTable({ users = [] }: { users?: any[] }) {
+interface PeopleTableProps {
+  users?: any[];
+  courseId?: string; // Add courseId as an optional prop
+}
+
+export default function PeopleTable({ users = [], courseId }: PeopleTableProps) {
+  const [courseUsers, setCourseUsers] = useState<any[]>([]); 
+
+  useEffect(() => {
+    const fetchCourseUsers = async () => {
+      if (courseId) {
+        try {
+          const enrolledUsers = await findUsersForCourse(courseId);
+          setCourseUsers(enrolledUsers);
+        } catch (error) {
+          console.error("Failed to fetch users for course:", error);
+        }
+      }
+    };
+  
+    fetchCourseUsers();
+  }, [courseId]);
+  
+
+   // Use `courseUsers` if `courseId` is provided, otherwise fallback to `users`
+   const displayedUsers = courseId ? courseUsers : users;
 
   return (
     <div id="wd-people-table">
@@ -20,10 +46,13 @@ export default function PeopleTable({ users = [] }: { users?: any[] }) {
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
+        {displayedUsers.map((user) => (
             <tr key={user._id}>
               <td className="wd-full-name text-nowrap">
-                <Link to={`/Kanbas/Account/Users/${user._id}`} className="text-decoration-none">
+                <Link
+                  to={`/Kanbas/Account/Users/${user._id}`}
+                  className="text-decoration-none"
+                >
                   <FaUserCircle className="me-2 fs-1 text-secondary" />
                   <span className="wd-first-name">{user.firstName}</span>{" "}
                   <span className="wd-last-name">{user.lastName}</span>

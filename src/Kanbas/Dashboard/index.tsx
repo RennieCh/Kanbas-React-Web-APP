@@ -146,19 +146,41 @@ export default function Dashboard({
         }
     };
     
-
+    useEffect(() => {
+        const fetchEnrollments = async () => {
+            try {
+                const data = await fetchAllEnrollments(); // Use the function from client.ts
+                setEnrollments(data);
+            } catch (error) {
+                console.error("Error fetching enrollments:", error);
+            }
+        };
+    
+        fetchEnrollments();
+    }, [currentUser]);   
 
     const handleGoToCourse = (courseId: string) => {
+    
+        if (currentUser.role === "ADMIN") {
+            navigate(`/Kanbas/Courses/${courseId}/Home`);
+            return;
+        }
+    
+        // Check if the user is enrolled
         const isEnrolled = enrollments.some(
-            (enrollment) => enrollment.user === currentUser._id && enrollment.course === courseId
+            (enrollment) =>
+                enrollment.status === "ENROLLED" &&
+                String(enrollment.user._id) === String(currentUser._id) &&
+                String(enrollment.course._id) === String(courseId)
         );
-
+    
         if (isEnrolled) {
             navigate(`/Kanbas/Courses/${courseId}/Home`);
         } else {
             alert("You are not enrolled in this course!");
         }
-    };
+    };    
+    
 
     const getImagePath = (courseId: string): string => {
         return courseId.startsWith("RS") ? `/images/${courseId.toLowerCase()}.jpg` : "/images/reactjs.jpg";
