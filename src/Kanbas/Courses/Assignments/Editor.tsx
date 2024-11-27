@@ -7,7 +7,7 @@ import * as assignmentsClient from "./client";
 
 // Helper function to format dates for "date" type HTML input
 const dateObjectToHtmlDateString = (date: Date) => {
-    return `${date.getFullYear()}-${date.getMonth() + 1 < 10 ? '0' : ''}${date.getMonth() + 1}-${date.getDate() < 10 ? '0' : ''}${date.getDate()}`;
+    return `${date.getFullYear()}-${date.getMonth() + 1 < 10 ? "0" : ""}${date.getMonth() + 1}-${date.getDate() < 10 ? "0" : ""}${date.getDate()}`;
 };
 
 // Helper function to format dates for "datetime-local" HTML input (for display)
@@ -20,8 +20,8 @@ const formatDateTimeForInput = (date: string | undefined, isDueDate = false) => 
     const formattedDate = dateObjectToHtmlDateString(dateObj);
 
     // Format the time as per requirement (set to 23:59 if due date)
-    const hours = isDueDate ? '23' : '00';
-    const minutes = isDueDate ? '59' : '00';
+    const hours = isDueDate ? "23" : "00";
+    const minutes = isDueDate ? "59" : "00";
 
     return `${formattedDate}T${hours}:${minutes}`;
 };
@@ -34,7 +34,6 @@ const formatDateForSave = (date: string | undefined) => {
 };
 
 export default function AssignmentEditor() {
-
     const { cid, aid } = useParams(); // Get courseId (cid) and assignmentId (aid) from URL
     const { assignments } = useSelector((state: any) => state.assignmentsReducer);
     const assignment = assignments.find((a: any) => a._id === aid); // Find the assignment by ID
@@ -42,7 +41,7 @@ export default function AssignmentEditor() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // Set default values for a new assignment
+    // Default values for a new assignment
     const defaultNewAssignment = {
         _id: "new", // Placeholder ID
         title: "New Assignment",
@@ -50,59 +49,54 @@ export default function AssignmentEditor() {
         points: 100,
         due_date: formatDateTimeForInput(new Date().toISOString(), true),
         available_date: formatDateTimeForInput(new Date().toISOString(), false),
-        course: cid
+        course: cid,
     };
 
-    const [form, setForm] = useState<any>(assignment ? {
-        ...assignment,
-        due_date: formatDateTimeForInput(assignment.due_date, true),
-        available_date: formatDateTimeForInput(assignment.available_date, false),
-    } : defaultNewAssignment);
+    const [form, setForm] = useState<any>(
+        assignment
+            ? {
+                  ...assignment,
+                  due_date: formatDateTimeForInput(assignment.due_date, true),
+                  available_date: formatDateTimeForInput(assignment.available_date, false),
+              }
+            : defaultNewAssignment
+    );
 
     const handleSave = async () => {
         const formattedDueDate = formatDateForSave(form.due_date);
         const formattedAvailableDate = formatDateForSave(form.available_date);
 
-        if (form._id === "new") {
-            try {
-                // Create a new assignment via coursesClient
+        try {
+            if (form._id === "new") {
+                // Create a new assignment
                 const newAssignment = await coursesClient.createAssignment(cid!, {
                     ...form,
                     due_date: formattedDueDate,
-                    available_date: formattedAvailableDate
+                    available_date: formattedAvailableDate,
                 });
-                dispatch(addAssignment(newAssignment)); // Update local state
-            } catch (error) {
-                console.error("Error creating assignment:", error);
-            }
-        } else {
-            try {
-                // Update existing assignment via assignmentsClient
+                dispatch(addAssignment(newAssignment));
+            } else {
+                // Update an existing assignment
                 await assignmentsClient.updateAssignment(form._id, {
                     ...form,
                     due_date: formattedDueDate,
-                    available_date: formattedAvailableDate
+                    available_date: formattedAvailableDate,
                 });
-                dispatch(updateAssignment({
-                    ...form,
-                    due_date: formattedDueDate,
-                    available_date: formattedAvailableDate
-                })); // Update local state
-            } catch (error) {
-                console.error("Error updating assignment:", error);
+                dispatch(updateAssignment({ ...form, due_date: formattedDueDate, available_date: formattedAvailableDate }));
             }
+        } catch (error) {
+            console.error("Error saving assignment:", error);
         }
-        navigate(`/Kanbas/Courses/${cid}/Assignments`); // Navigate back to Assignments
+
+        navigate(`/Kanbas/Courses/${cid}/Assignments`);
     };
-    
+
     const handleCancel = () => {
-        // Navigate back to the Assignments screen without saving
         navigate(`/Kanbas/Courses/${cid}/Assignments`);
     };
 
     useEffect(() => {
         if (aid && aid !== "new" && assignment) {
-            // Update the form state with properly formatted dates
             setForm({
                 ...assignment,
                 due_date: formatDateTimeForInput(assignment.due_date, true),
