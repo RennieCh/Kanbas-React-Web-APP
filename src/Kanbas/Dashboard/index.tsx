@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useState, useEffect } from "react";
-import { fetchAllCourses, fetchAllEnrollments, enrollUser, unenrollUser } from "../Courses/client";
+import { useState, useEffect, useCallback } from "react";
+import { fetchAllCourses, fetchAllEnrollments} from "../Courses/client";
 import { findMyCourses } from "../Account/client";
 
 type Course = {
@@ -55,13 +55,18 @@ export default function Dashboard({
     const [enrollments, setEnrollments] = useState<any[]>([]);
     const [showAllCourses, setShowAllCourses] = useState(false);
 
-    const fetchAndSetCourses = async () => {
+    const defaultNewCourse = {
+        _id: "new",
+        name: "New Course",
+        description: "New Description",
+    };
+
+    const fetchAndSetCourses = useCallback(async () => {
         try {
             if (showAllCourses) {
                 const allFetchedCourses = await fetchAllCourses();
                 const enrolledFetchedCourses = await findMyCourses();
 
-                // Merge all courses and deduplicate by `_id`
                 const mergedCourses = mergeUniqueCourses(
                     allFetchedCourses,
                     enrolledFetchedCourses.map((course: Course) => ({
@@ -78,12 +83,12 @@ export default function Dashboard({
         } catch (error) {
             console.error("Failed to fetch courses:", error);
         }
-    };
+    }, [showAllCourses]);
 
 
     useEffect(() => {
         fetchAndSetCourses();
-    }, [showAllCourses, currentUser]);
+    }, [showAllCourses, currentUser, fetchAndSetCourses]);
 
 
     const handleAddCourse = async () => {
@@ -105,6 +110,8 @@ export default function Dashboard({
                     // Add the new course to `myEnrolledCourses`
                     setMyEnrolledCourses((prevCourses) => mergeUniqueCourses(prevCourses, [newCourse]));
                 }
+                // Reset the course state to default
+                setCourse(defaultNewCourse);
             }
         } catch (error) {
             console.error("Failed to handle adding a new course:", error);
@@ -130,10 +137,10 @@ export default function Dashboard({
             setMyEnrolledCourses((prevCourses) =>
                 prevCourses.filter((course) => course._id !== courseId)
             );
-    
+
             // Call the deleteCourse function to delete the course from the backend
             await deleteCourse(courseId);
-    
+
             console.log(`Course with ID ${courseId} deleted successfully.`);
         } catch (error: any) {
             if (error instanceof Error) {
@@ -145,7 +152,7 @@ export default function Dashboard({
             }
         }
     };
-    
+
     useEffect(() => {
         const fetchEnrollments = async () => {
             try {
@@ -155,17 +162,17 @@ export default function Dashboard({
                 console.error("Error fetching enrollments:", error);
             }
         };
-    
+
         fetchEnrollments();
-    }, [currentUser]);   
+    }, [currentUser]);
 
     const handleGoToCourse = (courseId: string) => {
-    
+
         if (currentUser.role === "ADMIN") {
             navigate(`/Kanbas/Courses/${courseId}/Home`);
             return;
         }
-    
+
         // Check if the user is enrolled
         const isEnrolled = enrollments.some(
             (enrollment) =>
@@ -173,14 +180,14 @@ export default function Dashboard({
                 String(enrollment.user._id) === String(currentUser._id) &&
                 String(enrollment.course._id) === String(courseId)
         );
-    
+
         if (isEnrolled) {
             navigate(`/Kanbas/Courses/${courseId}/Home`);
         } else {
             alert("You are not enrolled in this course!");
         }
-    };    
-    
+    };
+
 
     const getImagePath = (courseId: string): string => {
         return courseId.startsWith("RS") ? `/images/${courseId.toLowerCase()}.jpg` : "/images/reactjs.jpg";
