@@ -6,6 +6,7 @@ import * as client from "./client";
 
 export default function Profile() {
   const [profile, setProfile] = useState<any>({});
+  const [isUpdating, setIsUpdating] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { currentUser } = useSelector((state: any) => state.accountReducer);
@@ -16,32 +17,39 @@ export default function Profile() {
     navigate("/Kanbas/Account/Signin");
   };
 
-  // Move the profile fetching logic directly inside useEffect
   useEffect(() => {
     if (!currentUser) {
       navigate("/Kanbas/Account/Signin");
     } else {
       setProfile({
         ...currentUser,
-        // Format the dob to match the YYYY-MM-DD format
         dob: currentUser.dob ? currentUser.dob.split("T")[0] : "",
       });
     }
-  }, [currentUser, navigate]); // Dependencies
+  }, [currentUser, navigate]);
 
-  // A5 Added: updateProfile function to handle profile updates
   const updateProfile = async () => {
     try {
-      const updatedProfile = await client.updateUser(profile);
-
-      // Update Redux store and local state with the updated profile
-      dispatch(setCurrentUser(updatedProfile));
-      setProfile(updatedProfile); // Synchronize local state with updated profile
+      setIsUpdating(true);
+      await client.updateUser(profile);
+  
+      // Wait for a short time before re-fetching
+      setTimeout(async () => {
+        const updatedProfile = await client.profile();
+        dispatch(setCurrentUser(updatedProfile));
+        setProfile({
+          ...updatedProfile,
+          dob: updatedProfile.dob ? updatedProfile.dob.split("T")[0] : "",
+        });
+      }, 500); // 500ms delay
     } catch (error) {
       console.error("Error updating profile:", error);
       alert("Failed to update profile. Please try again.");
+    } finally {
+      setIsUpdating(false);
     }
   };
+  
 
   return (
     <div id="wd-profile-screen" className="p-3">
@@ -124,7 +132,13 @@ export default function Profile() {
             <option value="STUDENT">Student</option>
           </select>
         </div>
-        <button onClick={updateProfile} className="btn btn-primary w-100 mb-2">Update</button>
+        <button 
+          onClick={updateProfile} 
+          className="btn btn-primary w-100 mb-2"
+          disabled={isUpdating}
+        >
+          {isUpdating ? "Updating..." : "Update"}
+        </button>
         <Link to="/Kanbas/Account/Signin" className="btn btn-danger w-100 text-center" onClick={signout}>
           Signout
         </Link>

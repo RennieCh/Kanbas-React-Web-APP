@@ -4,7 +4,7 @@ import Dashboard from "./Dashboard";
 import KanbasNavigation from "./Navigation";
 import Courses from "./Courses";
 import "./styles.css";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import ProtectedRoute from "./Account/ProtectedRoute";
 import Session from "./Account/Session";
@@ -27,16 +27,16 @@ export default function Kanbas() {
     const { currentUser } = useSelector((state: any) => state.accountReducer);
     const [enrolling, setEnrolling] = useState<boolean>(false);
 
-    const findCoursesForUser = useCallback(async () => {
+    const findCoursesForUser = async () => {
         try {
             const userCourses = await userClient.findCoursesForUser(currentUser._id);
             setCourses(userCourses);
         } catch (error) {
             console.error("Failed to fetch user courses:", error);
         }
-    }, [currentUser._id]);
+    };
 
-    const fetchCourses = useCallback(async () => {
+    const fetchCourses = async () => {
         try {
             const allCourses = await courseClient.fetchAllCourses();
             const enrolledCourses = await userClient.findCoursesForUser(currentUser._id);
@@ -50,13 +50,13 @@ export default function Kanbas() {
         } catch (error) {
             console.error("Failed to fetch courses:", error);
         }
-    }, [currentUser._id]);
+    };
 
     useEffect(() => {
         if (currentUser) {
             enrolling ? fetchCourses() : findCoursesForUser();
         }
-    }, [currentUser, enrolling, fetchCourses, findCoursesForUser]);
+    }, [currentUser, enrolling]);
 
     const [course, setCourse] = useState<Course>({
         _id: "",
@@ -97,7 +97,7 @@ export default function Kanbas() {
             } else {
                 await userClient.unenrollFromCourse(currentUser._id, courseId);
             }
-
+    
             // Update the `courses` state to reflect the new enrollment state
             setCourses((prevCourses) => {
                 const updatedCourses = prevCourses.map((course) => {
@@ -106,28 +106,29 @@ export default function Kanbas() {
                     }
                     return course;
                 });
-
+    
                 // Remove any duplicate entries for the same course
                 const uniqueCourses = new Map();
                 updatedCourses.forEach((course) => uniqueCourses.set(course._id, course));
-
+    
                 return Array.from(uniqueCourses.values());
             });
         } catch (error) {
             console.error("Failed to update enrollment:", error);
         }
     };
+    ;
 
     const deleteCourse = async (courseId: string): Promise<{ message: string }> => {
         try {
             // Call the client function to delete the course
             const response = await courseClient.deleteCourse(courseId);
-
+    
             // Update the state to immediately remove the deleted course
             setCourses((prevCourses) =>
                 prevCourses.filter((course) => course._id !== courseId)
             );
-
+    
             console.log(`Course with ID ${courseId} deleted successfully.`);
             return response;
         } catch (error: any) {
@@ -140,8 +141,8 @@ export default function Kanbas() {
             }
             throw error; // Re-throw to propagate the error to the calling function
         }
-    };
-
+    };       
+       
 
     const updateCourse = async () => {
         try {

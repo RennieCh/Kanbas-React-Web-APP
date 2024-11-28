@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useState, useEffect, useCallback } from "react";
-import { fetchAllCourses, fetchAllEnrollments} from "../Courses/client";
-import { findMyCourses } from "../Account/client";
+import { useState, useEffect } from "react";
+import { fetchAllCourses, fetchAllEnrollments } from "../Courses/client";
+import { findMyCourses, enrollIntoCourse, unenrollFromCourse } from "../Account/client";
 
 type Course = {
     _id: string;
@@ -55,18 +55,13 @@ export default function Dashboard({
     const [enrollments, setEnrollments] = useState<any[]>([]);
     const [showAllCourses, setShowAllCourses] = useState(false);
 
-    const defaultNewCourse = {
-        _id: "new",
-        name: "New Course",
-        description: "New Description",
-    };
-
-    const fetchAndSetCourses = useCallback(async () => {
+    const fetchAndSetCourses = async () => {
         try {
             if (showAllCourses) {
                 const allFetchedCourses = await fetchAllCourses();
                 const enrolledFetchedCourses = await findMyCourses();
 
+                // Merge all courses and deduplicate by `_id`
                 const mergedCourses = mergeUniqueCourses(
                     allFetchedCourses,
                     enrolledFetchedCourses.map((course: Course) => ({
@@ -78,46 +73,47 @@ export default function Dashboard({
                 setAllCourses(mergedCourses);
             } else {
                 const myCourses = await findMyCourses();
-                setMyEnrolledCourses(myCourses);
+                setMyEnrolledCourses(myCourses.map((course: Course) => ({ ...course, enrolled: true })));
             }
         } catch (error) {
             console.error("Failed to fetch courses:", error);
         }
-    }, [showAllCourses]);
-
+    };
 
     useEffect(() => {
         fetchAndSetCourses();
-    }, [showAllCourses, currentUser, fetchAndSetCourses]);
-
+    }, [showAllCourses, currentUser]);
 
     const handleAddCourse = async () => {
         try {
             const newCourse = await addNewCourse();
             if (newCourse) {
-                // Update all courses without duplicates
-                setAllCourses((prevCourses) => mergeUniqueCourses(prevCourses, [newCourse]));
-
                 if (currentUser.role === "FACULTY") {
-                    // Enroll the current user (faculty) in the course if not already enrolled
-                    const existingEnrollment = enrollments.find(
-                        (enrollment) => enrollment.user === currentUser._id && enrollment.course === newCourse._id
-                    );
-                    if (!existingEnrollment) {
-                        await updateEnrollment(newCourse._id, true);
-                    }
-
-                    // Add the new course to `myEnrolledCourses`
+                    // Automatically enroll the faculty user to the newly created course
+                    await enrollIntoCourse(currentUser._id, newCourse._id);
+    
+                    // Update all courses state
+                    setAllCourses((prevCourses) => mergeUniqueCourses(prevCourses, [newCourse]));
+    
+                    // Update enrolled courses state
                     setMyEnrolledCourses((prevCourses) => mergeUniqueCourses(prevCourses, [newCourse]));
+    
+                    // Update enrollments state
+                    setEnrollments((prevEnrollments) => [
+                        ...prevEnrollments,
+                        {
+                            user: currentUser._id,
+                            course: newCourse._id,
+                            status: "ENROLLED"
+                        }
+                    ]);
                 }
-                // Reset the course state to default
-                setCourse(defaultNewCourse);
             }
         } catch (error) {
             console.error("Failed to handle adding a new course:", error);
         }
     };
-
+    
 
     const handleUpdateCourse = async () => {
         try {
@@ -167,8 +163,7 @@ export default function Dashboard({
     }, [currentUser]);
 
     const handleGoToCourse = (courseId: string) => {
-
-        if (currentUser.role === "ADMIN") {
+        if (currentUser.role === "ADMIN" || currentUser.role === "FACULTY") {
             navigate(`/Kanbas/Courses/${courseId}/Home`);
             return;
         }
@@ -177,6 +172,7 @@ export default function Dashboard({
         const isEnrolled = enrollments.some(
             (enrollment) =>
                 enrollment.status === "ENROLLED" &&
+                enrollment.user && enrollment.course &&
                 String(enrollment.user._id) === String(currentUser._id) &&
                 String(enrollment.course._id) === String(courseId)
         );
@@ -188,9 +184,28 @@ export default function Dashboard({
         }
     };
 
-
     const getImagePath = (courseId: string): string => {
         return courseId.startsWith("RS") ? `/images/${courseId.toLowerCase()}.jpg` : "/images/reactjs.jpg";
+    };
+
+    const handleEnrollmentToggle = async (courseId: string, enrolled: boolean) => {
+        try {
+            if (enrolled) {
+                await unenrollFromCourse(currentUser._id, courseId);
+            } else {
+                await enrollIntoCourse(currentUser._id, courseId);
+            }
+            setAllCourses((prevCourses) =>
+                prevCourses.map((course) =>
+                    course._id === courseId ? { ...course, enrolled: !enrolled } : course
+                )
+            );
+            setMyEnrolledCourses(await findMyCourses());
+            setEnrollments(await fetchAllEnrollments());
+        } catch (error) {
+            console.error("Failed to toggle enrollment:", error);
+            alert("Failed to update enrollment. Please try again later.");
+        }
     };
 
     const filteredCourses = showAllCourses ? allCourses : myEnrolledCourses;
@@ -299,20 +314,15 @@ export default function Dashboard({
                                         </>
                                     )}
                                     {currentUser.role === "STUDENT" && showAllCourses && (
-                                        <>
-                                            {enrolling && (
-                                                <button
-                                                    onClick={(event) => {
-                                                        event.preventDefault();
-                                                        updateEnrollment(course._id, !course.enrolled);
-                                                    }}
-                                                    className={`btn ${course.enrolled ? "btn-danger" : "btn-success"
-                                                        } float-end`}
-                                                >
-                                                    {course.enrolled ? "Unenroll" : "Enroll"}
-                                                </button>
-                                            )}
-                                        </>
+                                        <button
+                                            onClick={(event) => {
+                                                event.preventDefault();
+                                                handleEnrollmentToggle(course._id, course.enrolled || false);
+                                            }}
+                                            className={`btn ${course.enrolled ? "btn-danger" : "btn-success"} float-end`}
+                                        >
+                                            {course.enrolled ? "Unenroll" : "Enroll"}
+                                        </button>
                                     )}
                                 </div>
                             </div>
