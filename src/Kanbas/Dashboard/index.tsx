@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback} from "react";
 import { fetchAllCourses, fetchAllEnrollments } from "../Courses/client";
 import { findMyCourses, enrollIntoCourse, unenrollFromCourse } from "../Account/client";
 
@@ -55,12 +55,12 @@ export default function Dashboard({
     const [enrollments, setEnrollments] = useState<any[]>([]);
     const [showAllCourses, setShowAllCourses] = useState(false);
 
-    const fetchAndSetCourses = async () => {
+    const fetchAndSetCourses = useCallback(async () => {
         try {
             if (showAllCourses) {
                 const allFetchedCourses = await fetchAllCourses();
                 const enrolledFetchedCourses = await findMyCourses();
-
+    
                 // Merge all courses and deduplicate by `_id`
                 const mergedCourses = mergeUniqueCourses(
                     allFetchedCourses,
@@ -69,7 +69,7 @@ export default function Dashboard({
                         enrolled: true,
                     }))
                 );
-
+    
                 setAllCourses(mergedCourses);
             } else {
                 const myCourses = await findMyCourses();
@@ -78,11 +78,11 @@ export default function Dashboard({
         } catch (error) {
             console.error("Failed to fetch courses:", error);
         }
-    };
+    }, [showAllCourses]);
 
     useEffect(() => {
         fetchAndSetCourses();
-    }, [showAllCourses, currentUser]);
+    }, [fetchAndSetCourses, showAllCourses, currentUser]);    
 
     const handleAddCourse = async () => {
         try {

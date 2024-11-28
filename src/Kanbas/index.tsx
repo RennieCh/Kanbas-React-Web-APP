@@ -4,7 +4,7 @@ import Dashboard from "./Dashboard";
 import KanbasNavigation from "./Navigation";
 import Courses from "./Courses";
 import "./styles.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import ProtectedRoute from "./Account/ProtectedRoute";
 import Session from "./Account/Session";
@@ -27,36 +27,40 @@ export default function Kanbas() {
     const { currentUser } = useSelector((state: any) => state.accountReducer);
     const [enrolling, setEnrolling] = useState<boolean>(false);
 
-    const findCoursesForUser = async () => {
+    const findCoursesForUser = useCallback(async () => {
         try {
-            const userCourses = await userClient.findCoursesForUser(currentUser._id);
-            setCourses(userCourses);
+            if (currentUser) {
+                const userCourses = await userClient.findCoursesForUser(currentUser._id);
+                setCourses(userCourses);
+            }
         } catch (error) {
             console.error("Failed to fetch user courses:", error);
         }
-    };
+    }, [currentUser]);
 
-    const fetchCourses = async () => {
+    const fetchCourses = useCallback(async () => {
         try {
-            const allCourses = await courseClient.fetchAllCourses();
-            const enrolledCourses = await userClient.findCoursesForUser(currentUser._id);
+            if (currentUser) {
+                const allCourses = await courseClient.fetchAllCourses();
+                const enrolledCourses = await userClient.findCoursesForUser(currentUser._id);
 
-            const combinedCourses = allCourses.map((course: Course) => ({
-                ...course,
-                enrolled: enrolledCourses.some((c: Course) => c._id === course._id),
-            }));
+                const combinedCourses = allCourses.map((course: Course) => ({
+                    ...course,
+                    enrolled: enrolledCourses.some((c: Course) => c._id === course._id),
+                }));
 
-            setCourses(combinedCourses);
+                setCourses(combinedCourses);
+            }
         } catch (error) {
             console.error("Failed to fetch courses:", error);
         }
-    };
+    }, [currentUser]);
 
     useEffect(() => {
         if (currentUser) {
             enrolling ? fetchCourses() : findCoursesForUser();
         }
-    }, [currentUser, enrolling]);
+    }, [currentUser, enrolling, fetchCourses, findCoursesForUser]);
 
     const [course, setCourse] = useState<Course>({
         _id: "",
