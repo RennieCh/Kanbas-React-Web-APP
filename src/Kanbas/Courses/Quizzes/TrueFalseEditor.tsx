@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import QuestionTool from "./questiontool";
 import { ImArrowRight } from "react-icons/im";
-import { updateQuestion } from "./client";
+import { updateQuestion, updateQuizPoints } from "./client";
 import { useParams, useNavigate } from "react-router-dom";
 
 type TrueFalseEditorProps = {
@@ -19,6 +19,7 @@ export default function TrueFalseEditor({ questionId, question, setQuestion }: T
             try {
                 await updateQuestion(updatedQuestion._id, updatedQuestion);
                 setQuestion(updatedQuestion);
+                await updateQuizPoints(updatedQuestion.quiz); // Update quiz points after updating the question
             } catch (error) {
                 console.error("Failed to update question:", error);
             }
@@ -45,6 +46,7 @@ export default function TrueFalseEditor({ questionId, question, setQuestion }: T
         try {
             await updateQuestion(updatedQuestion._id, updatedQuestion);
             setQuestion(updatedQuestion);
+            await updateQuizPoints(updatedQuestion.quiz); // Update quiz points after updating the question
         } catch (error) {
             console.error("Failed to update question:", error);
         }

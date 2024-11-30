@@ -449,7 +449,7 @@ export default function QuizzesEditor() {
             {/* Content for the Questions Tab */}
             {activeTab === "questions" && (
                 <div>
-                    <QuestionEditorGate />
+                    <QuestionEditorGate setQuiz={setQuiz}/>
                 </div>
             )}
         </div>

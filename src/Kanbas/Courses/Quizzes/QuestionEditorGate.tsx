@@ -2,20 +2,25 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaPlus } from "react-icons/fa6";
 import { IoSearchOutline } from "react-icons/io5";
-import { fetchQuizById, fetchQuestionsForQuiz, createQuestion, deleteQuestion } from "./client";
+import { updateQuizPoints, fetchQuizById, fetchQuestionsForQuiz, createQuestion, deleteQuestion } from "./client";
 
 
 // Define the type for a quiz object 
 interface Quiz {
     _id: string;
     course: string;
+    points: number;
 }
 
-export default function QuestionEditorGate() {
+interface QuestionEditorGateProps {
+    setQuiz: React.Dispatch<React.SetStateAction<any>>;
+}
+
+export default function QuestionEditorGate({ setQuiz }: QuestionEditorGateProps) {
     const navigate = useNavigate();
     const { cid, aid } = useParams<{ cid: string; aid: string }>(); // Get course ID and quiz ID from URL
     const [questions, setQuestions] = useState<any[]>([]);
-    const [quiz, setQuiz] = useState<Quiz | null>(null);
+    const [quiz, setLocalQuiz] = useState<Quiz | null>(null);
 
     // Fetch quiz details and questions from the server
     useEffect(() => {
@@ -24,6 +29,7 @@ export default function QuestionEditorGate() {
                 if (aid) {
                     // Fetch the quiz details
                     const fetchedQuiz = await fetchQuizById(aid);
+                    setLocalQuiz(fetchedQuiz);
                     setQuiz(fetchedQuiz);
 
                     // Fetch the quiz questions
@@ -36,7 +42,7 @@ export default function QuestionEditorGate() {
         };
 
         fetchQuizAndQuestions();
-    }, [aid]);
+    }, [aid, setQuiz]);
 
     // Handle the case where the quiz is not found
     if (!quiz) {
@@ -63,6 +69,7 @@ export default function QuestionEditorGate() {
                 };
                 const createdQuestion = await createQuestion(newQuestion);
                 setQuestions((prevQuestions) => [...prevQuestions, createdQuestion]);
+                await updateQuizPoints(newQuestion.quiz);
             } catch (error) {
                 console.error("Failed to add question:", error);
             }
@@ -79,12 +86,28 @@ export default function QuestionEditorGate() {
     // Handler to delete a question
     const handleDeleteQuestion = async (questionId: string) => {
         try {
+            const questionToDelete = questions.find((q) => q._id === questionId);
+            if (!questionToDelete) return;
+
             await deleteQuestion(questionId);
+
+            // Optimistically update the points
+            const newQuizPoints = (quiz?.points || 0) - questionToDelete.points;
+            setQuiz((prevQuiz: any) => ({ ...prevQuiz, points: newQuizPoints }));
+
             setQuestions((prevQuestions) => prevQuestions.filter((question) => question._id !== questionId));
+
+            // Update points in the backend
+            await updateQuizPoints(questionToDelete.quiz);
+
+            // Fetch the updated quiz data and update the state
+            const updatedQuiz = await fetchQuizById(questionToDelete.quiz);
+            setQuiz(updatedQuiz);
         } catch (error) {
             console.error("Failed to delete question:", error);
         }
     };
+
 
     return (
         <div>

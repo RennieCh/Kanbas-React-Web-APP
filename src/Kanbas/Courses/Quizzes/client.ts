@@ -60,6 +60,17 @@ export const deleteQuiz = async (quizId: string) => {
   }
 };
 
+// Function to update the points of a specific quiz
+export const updateQuizPoints = async (quizId: string) => {
+  try {
+    const response = await axios.put(`${QUIZZES_API}/${quizId}/points`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update quiz points:", error);
+    throw error;
+  }
+};
+
 // Questions Client Functions
 
 // Fetch all questions for a specific quiz

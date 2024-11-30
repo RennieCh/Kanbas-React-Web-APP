@@ -3,7 +3,7 @@ import { FaPlus, FaTrash } from "react-icons/fa";
 import QuestionTool from "./questiontool";
 import { ImArrowRight } from "react-icons/im";
 import { PiPencilLight } from "react-icons/pi";
-import { updateQuestion } from "./client";
+import { updateQuestion, updateQuizPoints } from "./client";
 import { useParams, useNavigate } from "react-router-dom";
 
 type FillInBlankEditorProps = {
@@ -46,6 +46,7 @@ export default function FillInBlankEditor({ question, setQuestion }: FillInBlank
         try {
             await updateQuestion(updatedQuestion._id, updatedQuestion);
             setQuestion(updatedQuestion);
+            await updateQuizPoints(updatedQuestion.quiz); // Update quiz points after updating the question
         } catch (error) {
             console.error("Failed to update question:", error);
         }
