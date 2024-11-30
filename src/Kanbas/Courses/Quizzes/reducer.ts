@@ -88,9 +88,9 @@ const quizzesSlice = createSlice({
         accessCode: quiz.accessCode || "",
         webCam: quiz.webCam || false,
         lockQuestionsAfterAnswering: quiz.lockQuestionsAfterAnswering || false,
-        availableFromDate: new Date().toISOString().split("T")[0],
-        dueDate: new Date().toISOString().split("T")[0],
-        availableUntilDate: new Date().toISOString().split("T")[0],
+        availableFromDate: new Date().toISOString().split('T')[0],
+        dueDate: new Date().toISOString().split('T')[0],
+        availableUntilDate: new Date().toISOString().split('T')[0],
       };
       state.quizzes = [...state.quizzes, newQuiz];
     },

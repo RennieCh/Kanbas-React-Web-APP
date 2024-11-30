@@ -1,7 +1,23 @@
 import { PiPencil } from "react-icons/pi";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchQuizById, fetchAnswersForQuiz } from "./client";
+
+// Helper function to format dates for display
+const formatDateForDisplay = (dateString: string) => {
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + 1); // Adjust for date gap issue
+    return date.toLocaleString("en-US", {
+      month: "numeric",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  };
 
 export default function QuizzesDetails() {
     const navigate = useNavigate();
@@ -10,14 +26,41 @@ export default function QuizzesDetails() {
     const [noAttemptVisible, setNoAttemptVisible] = useState(false);
     const [accessCode, setAccessCode] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
+    const [quiz, setQuiz] = useState<any>(null);
+    const [answers, setAnswers] = useState<any[]>([]);
 
-    // Get quizzes from the store using useSelector with inline type assertion
-    const quizzes = useSelector((state) => (state as any).quizzesReducer.quizzes);
-    const answers = useSelector((state) => (state as any).quizzesReducer.answers);
+    // Get current user
     const currentUser = useSelector((state) => (state as any).accountReducer.currentUser);
 
-    // Fetch the quiz based on the course ID and quiz ID
-    const quiz = quizzes.find((q: any) => q._id === aid && q.course === cid);
+    // Fetch quiz details from the backend
+    useEffect(() => {
+        const fetchQuiz = async () => {
+            try {
+                if (aid) {
+                    const fetchedQuiz = await fetchQuizById(aid);
+                    setQuiz(fetchedQuiz);
+                }
+            } catch (error) {
+                console.error("Failed to fetch quiz:", error);
+            }
+        };
+        fetchQuiz();
+    }, [aid]);
+
+    // Fetch answers for the quiz
+    useEffect(() => {
+        const fetchAnswers = async () => {
+            try {
+                if (aid) {
+                    const fetchedAnswers = await fetchAnswersForQuiz(aid);
+                    setAnswers(fetchedAnswers);
+                }
+            } catch (error) {
+                console.error("Failed to fetch answers:", error);
+            }
+        };
+        fetchAnswers();
+    }, [aid]);
 
     // Handle the case where the quiz is not found
     if (!quiz) {
@@ -238,10 +281,10 @@ export default function QuizzesDetails() {
             <hr />
             <div className="row">
                 {/* Values Row */}
-                <div className="col-3 text-center">{new Date(quiz.dueDate).toLocaleString()}</div>
+                <div className="col-3 text-center">{formatDateForDisplay(quiz.dueDate)}</div>
                 <div className="col-3 text-center">Everyone</div>
-                <div className="col-3 text-center">{new Date(quiz.availableFromDate).toLocaleString()}</div>
-                <div className="col-3 text-center">{new Date(quiz.availableUntilDate).toLocaleString()}</div>
+                <div className="col-3 text-center">{formatDateForDisplay(quiz.availableFromDate)}</div>
+                <div className="col-3 text-center">{formatDateForDisplay(quiz.availableUntilDate)}</div>
             </div>
             <hr />
 
