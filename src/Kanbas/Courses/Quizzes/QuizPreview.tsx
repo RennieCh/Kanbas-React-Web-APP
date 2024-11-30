@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BsExclamationCircle, BsQuestionCircle } from "react-icons/bs";
 import { IoMdArrowDropleft, IoMdArrowDropright } from "react-icons/io";
 import { PiPencil } from "react-icons/pi";
 import { CgPentagonRight } from "react-icons/cg";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { addOrUpdateAnswer } from "./reducer";
+import { useSelector } from "react-redux";
+import { fetchQuizById, fetchQuestionsForQuiz, addOrUpdateAnswer } from "./client";
+
 
 type Question = {
     _id: string;
@@ -21,19 +22,34 @@ type Question = {
 export default function QuizPreview() {
     const { quiz: quizId, cid } = useParams<{ quiz: string; cid: string }>();
     const navigate = useNavigate();
-    const dispatch = useDispatch();
+    const [quizData, setQuizData] = useState<any>(null);
+    const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<string[]>([]);
     const startTime = new Date().toISOString();
 
-    // Get quizzes and questions from Redux state
-    const quizzes = useSelector((state: any) => state.quizzesReducer.quizzes);
-    const questions = useSelector((state: any) => state.quizzesReducer.questions);
-    const currentUser = useSelector((state: any) => state.accountReducer.currentUser);
+    // Fetch quiz and questions from the server
+    useEffect(() => {
+        const fetchQuizAndQuestions = async () => {
+            try {
+                if (quizId) {
+                    const fetchedQuiz = await fetchQuizById(quizId);
+                    setQuizData(fetchedQuiz);
 
-    // Find the specific quiz and its questions
-    const quizData = quizzes.find((q: any) => q._id === quizId);
-    const quizQuestions = questions.filter((q: Question) => q.quiz === quizId);
+                    const fetchedQuestions = await fetchQuestionsForQuiz(quizId);
+                    setQuizQuestions(fetchedQuestions);
+                }
+                // Fetch current user details if needed
+                // setCurrentUser(fetchedCurrentUser); // Assuming there's a function or prop to get current user
+            } catch (error) {
+                console.error("Failed to fetch quiz or questions:", error);
+            }
+        };
+        fetchQuizAndQuestions();
+    }, [quizId]);
+
+    // Get current user
+    const currentUser = useSelector((state: any) => state.accountReducer.currentUser);
 
     // If no quiz is found, show a message
     if (!quizData || quizQuestions.length === 0) {
@@ -73,7 +89,7 @@ export default function QuizPreview() {
     };
 
     // Handle submit quiz
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const endTime = new Date().toISOString();
         const finalScore = calculateScore();
 
@@ -87,8 +103,12 @@ export default function QuizPreview() {
             endTime,
         };
 
-        dispatch(addOrUpdateAnswer(answerPayload));
-        navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizId}/Result`);
+        try {
+            await addOrUpdateAnswer(answerPayload);
+            navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizId}/Result`);
+        } catch (error) {
+            console.error("Failed to submit quiz:", error);
+        }
     };
 
     // Navigate to the Question Editor

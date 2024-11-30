@@ -182,3 +182,14 @@ export const deleteAnswer = async (answerId: string) => {
     throw error;
   }
 };
+
+// Add or update an answer
+export const addOrUpdateAnswer = async (answer: any) => {
+  try {
+    const response = await axios.post(`${ANSWERS_API}/addOrUpdate`, answer);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to add or update answer:", error);
+    throw error;
+  }
+};

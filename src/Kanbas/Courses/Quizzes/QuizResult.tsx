@@ -1,23 +1,48 @@
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { BsCheckCircle, BsXCircle } from "react-icons/bs";
+import { useSelector } from "react-redux";
+import { fetchQuizById, fetchQuestionsForQuiz, fetchAnswersForUser } from "./client";
 
 export default function QuizResult() {
     const navigate = useNavigate();
     const { cid, quiz: quizId } = useParams<{ cid: string; quiz: string }>();
 
-    // Get quizzes, questions, and answers from Redux state
-    const quizzes = useSelector((state: any) => state.quizzesReducer.quizzes);
-    const questions = useSelector((state: any) => state.quizzesReducer.questions);
-    const answers = useSelector((state: any) => state.quizzesReducer.answers);
+    // Get quizzes, questions, answers, and current user
+    const [quizData, setQuizData] = useState<any>(null);
+    const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
+    const [userAnswer, setUserAnswer] = useState<any>(null);
     const currentUser = useSelector((state: any) => state.accountReducer.currentUser);
 
-    // Find the specific quiz
-    const quizData = quizzes.find((q: any) => q._id === quizId);
-    const quizQuestions = questions.filter((q: any) => q.quiz === quizId);
-    const userAnswer = answers.find(
-        (a: any) => a.quizID === quizId && a.userID === currentUser?._id
-    );
+    // Fetch quiz, questions, and user answers from the server
+    useEffect(() => {
+        const fetchQuizDetails = async () => {
+            try {
+                if (quizId && cid) {
+                    const fetchedQuiz = await fetchQuizById(quizId);
+                    setQuizData(fetchedQuiz);
+
+                    const fetchedQuestions = await fetchQuestionsForQuiz(quizId);
+                    setQuizQuestions(fetchedQuestions);
+
+                    // Assuming the currentUser is available
+                    // Fetch current user details if needed
+                    // setCurrentUser(fetchedCurrentUser);
+                    if (currentUser?._id) {
+                        const fetchedAnswers = await fetchAnswersForUser(currentUser._id);
+                        const userQuizAnswer = fetchedAnswers.find(
+                            (a: any) => a.quizID === quizId && a.courseID === cid
+                        );
+                        setUserAnswer(userQuizAnswer);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch quiz details or answers:", error);
+            }
+        };
+
+        fetchQuizDetails();
+    }, [quizId, cid, currentUser]);
 
     // Handle the case where the quiz or user answer is not found
     if (!quizData || !userAnswer) {
@@ -45,7 +70,7 @@ export default function QuizResult() {
         const date = new Date(dateString);
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based, add 1
-        const day = String(date.getDate()).padStart(2, '0');
+        const day = String(date.getDate() + 1).padStart(2, '0');
 
         return `${year}-${month}-${day}`;
     };
