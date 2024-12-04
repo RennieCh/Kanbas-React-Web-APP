@@ -32,7 +32,7 @@ export default function Assignments() {
             }
         };
         if (cid) fetchAssignments();
-    }, [cid, dispatch]);
+    }, [cid, assignments, dispatch]);
 
     const courseAssignments = assignments.filter(
         (assignment: any) => assignment.course?._id === cid
