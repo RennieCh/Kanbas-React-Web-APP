@@ -67,7 +67,7 @@ export default function Modules() {
                   onChange={(e) => dispatch(updateModule({ ...module, name: e.target.value }))}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      saveModule({ ...module, editing: false });
+                      saveModule({ ...module, editing: false, _id: module._id });
                     }
                   }}
                   value={module.name} />
