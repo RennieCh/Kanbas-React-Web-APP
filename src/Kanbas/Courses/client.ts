@@ -61,28 +61,28 @@ export const createModuleForCourse = async (courseId: string, module: any) => {
 };
 
 export const createAssignment = async (courseId: string, assignment: any) => {
-    const response = await axios.post(`${COURSES_API}/${courseId}/assignments`, assignment);
+    const response = await axiosWithCredentials.post(`${COURSES_API}/${courseId}/assignments`, assignment);
     return response.data;
 };
 
 export const fetchAssignments = async (courseId: string) => {
-    const response = await axios.get(`${COURSES_API}/${courseId}/assignments`);
+    const response = await axiosWithCredentials.get(`${COURSES_API}/${courseId}/assignments`);
     return response.data;
 };
 
 // Enroll a user in a course
 export const enrollUser = async (userId: string, courseId: string) => {
-    const response = await axios.post(`${USERS_API}/${userId}/courses/${courseId}/enroll`);
+    const response = await axiosWithCredentials.post(`${USERS_API}/${userId}/courses/${courseId}/enroll`);
     return response.data;
 };
 
 // Unenroll a user from a course
 export const unenrollUser = async (userId: string, courseId: string) => {
-    await axios.delete(`${USERS_API}/${userId}/courses/${courseId}/unenroll`);
+    await axiosWithCredentials.delete(`${USERS_API}/${userId}/courses/${courseId}/unenroll`);
 };
 
 // Find users enrolled in a course
 export const findUsersForCourse = async (courseId: string) => {
-    const response = await axios.get(`${COURSES_API}/${courseId}/users`);
+    const response = await axiosWithCredentials.get(`${COURSES_API}/${courseId}/users`);
     return response.data;
 };
