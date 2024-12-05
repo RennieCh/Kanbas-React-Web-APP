@@ -29,9 +29,18 @@ export default function Modules() {
   };
 
   const saveModule = async (module: any) => {
-    await modulesClient.updateModule(module);
-    dispatch(updateModule(module));
-  };
+    try {
+        if (!module._id || module._id.length !== 24) {
+            console.error("Invalid module ID:", module._id);
+            alert("An error occurred while saving the module. Please refresh the page.");
+            return;
+        }
+        await modulesClient.updateModule(module);
+        dispatch(updateModule(module)); // Update module in state
+    } catch (error) {
+        console.error("Failed to save module:", error);
+    }
+};
 
   const fetchModules = useCallback(async () => {
     const modules = await coursesClient.findModulesForCourse(cid as string);
