@@ -46,7 +46,7 @@ export default function PeopleTable({ users = [], courseId }: PeopleTableProps) 
           </tr>
         </thead>
         <tbody>
-        {displayedUsers.map((user) => (
+        {displayedUsers.filter((user) => user?._id).map((user) => (
             <tr key={user._id}>
               <td className="wd-full-name text-nowrap">
                 <Link

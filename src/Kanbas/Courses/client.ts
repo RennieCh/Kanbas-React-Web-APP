@@ -84,5 +84,7 @@ export const unenrollUser = async (userId: string, courseId: string) => {
 // Find users enrolled in a course
 export const findUsersForCourse = async (courseId: string) => {
     const response = await axiosWithCredentials.get(`${COURSES_API}/${courseId}/users`);
-    return response.data;
+    const users = response.data;
+    // Ensure only valid users are returned
+    return users.filter((user: any) => user && user._id);
 };
